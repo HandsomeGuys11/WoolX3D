@@ -1,4 +1,4 @@
-global proc createLSystemMenu()
+global proc createWoolXMenu()
 {
     if (`menu -exists WoolXMenu`)
         deleteUI WoolXMenu;
@@ -17,7 +17,7 @@ global proc createLSystemMenu()
     }
 }
 
-global proc deleteLSystemMenu()
+global proc deleteWoolXMenu()
 {
 	
 }
@@ -65,6 +65,11 @@ setAttr "Knit.scaleX" 0.108;
 setAttr "Knit.scaleY" 0.108;
 setAttr "Knit.scaleZ" 0.108;
 setAttr "Knit.translateZ" -3.755;
+
+//Reset transformation
+select -r Knit ;
+makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+
  
 }
 

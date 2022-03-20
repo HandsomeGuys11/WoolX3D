@@ -164,7 +164,21 @@ for( $i =0; $i< $singleCount; ++$i)
      
 };
 
-
+select pCube1;
+string $obj[] = `ls -sl`;
+int $faceCount[] = `polyEvaluate -f $obj[0]`;
+int $singleCount = $faceCount[0];
+string $args;
+for( $i =0; $i< $singleCount; ++$i)
+{
+    string $temp;
+    int $currInt = $i;
+    select -add pCube1.f[$currInt] ;
+    float $sz[] = `xform -q -ws -m ($obj[0] + ".f["+$i+"]")`;
+    $temp = floatArrayToString($sz, ",")+",";
+    $args = $args + $temp;
+};
+print($args);
 
 
 
