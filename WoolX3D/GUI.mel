@@ -1,0 +1,66 @@
+global proc createLSystemMenu()
+{
+    if (`menu -exists LSystemInstanceMenu`)
+        deleteUI LSystemInstanceMenu;
+
+    if (!`menu -exists LSystemInstanceMenu`)
+    {
+        global string $gMainWindow;
+        setParent $gMainWindow;
+
+        menu -label "LSystemInstance" LSystemInstanceMenu;
+            menuItem -label "Random Node Network" -command createRandomNodeNetwork;
+            menuItem -divider true;
+			menuItem -label "Selected Random Node Network" -command createSelectedRandomNodeNetwork;
+			menuItem -divider true;
+			menuItem -label "LSystem Instance Node Network" -command createlSystemInstanceNodeNetwork;
+			menuItem -divider true;
+			menuItem -label "Selected LSystem Instance Node Network" -command createSelectedLSystemInstanceNodeNetwork;
+			menuItem -divider true;
+    }
+}
+
+global proc deleteLSystemMenu()
+{
+	
+}
+
+global proc createRandomNodeNetwork()
+{
+    polySphere;
+    instancer;
+    createNode randomNode;
+    connectAttr pSphere1.matrix instancer1.inputHierarchy[0]; 
+    connectAttr randomNode1.outPoints instancer1.inputPoints; 
+}
+
+global proc createSelectedRandomNodeNetwork()
+{
+
+	instancer;
+	string  $sceneObjects[];
+	$sceneObjects = `ls -selection -tail 1`;
+	$selObject = $sceneObjects[0];
+    createNode randomNode;
+	connectAttr($selObject + ".matrix", "instancer1.inputHierarchy[0]");
+    connectAttr randomNode1.outPoints instancer1.inputPoints;  
+}
+
+global proc createlSystemInstanceNodeNetwork()
+{
+	polyCube; 
+	instancer;
+	createNode LSystemInstanceNode;
+	connectAttr pCube1.matrix instancer1.inputHierarchy[0];
+	connectAttr LSystemInstanceNode1.outputBranches instancer1.inputPoints;
+
+	polySphere; 
+	instancer;
+	connectAttr pSphere1.matrix instancer2.inputHierarchy[0];
+	connectAttr LSystemInstanceNode1.outputFlowers instancer2.inputPoints;
+}
+
+global proc createSelectedLSystemInstanceNodeNetwork()
+{
+
+}

@@ -1,0 +1,170 @@
+
+setAttr "pCube1.scaleX" 1;
+setAttr "pCube1.scaleY" 1;
+setAttr "pCube1.scaleZ" 1;
+select pCube1;
+string $nodes[] = `ls -selection`;
+
+for ($node in $nodes)
+{
+    int $sX = `getAttr ($node + ".scaleX")`;
+    int $sY = `getAttr ($node + ".scaleY")`;
+    int $sZ = `getAttr ($node + ".scaleZ")`;
+    setAttr ($node + ".scaleX") ($sX * 2);
+    setAttr ($node + ".scaleY") ($sY * 2);
+    setAttr ($node + ".scaleZ") ($sZ * 2);
+};
+pCube1.xformMatrix;
+// Error: line 1: Cannot find procedure "pCube1.xformMatrix". // 
+pCube1.xform;
+// Error: line 1: Cannot find procedure "pCube1.xform". // 
+select pCube1.xform;
+// Error: line 1: No object matches name: pCube1.xform // 
+select pCube1 xform -q -m;
+// Error: line 1: No object matches name: xform // 
+select pCube1;
+xform -q -m;
+// Result: 2 0 0 0 0 2 0 0 0 0 2 0 0 0 0 1 // 
+
+
+
+//Select all faces
+int $faceCount[] = `polyEvaluate -f pCube1`;
+int $singleCount = $faceCount[0];
+
+for( $i =0; $i< $singleCount; ++$i)
+{
+    int $currInt = $i;
+    select -add pCube1.f[$currInt] ;
+};
+
+
+
+
+
+
+
+int $faceCount[] = `polyEvaluate -f pCube1`;
+int $singleCount = $faceCount[0];
+
+for( $i =0; $i< $singleCount-1; ++$i)
+{
+    int $currInt = $i;
+     $node = select pCube1.f[$currInt] ;
+    
+     int $sX = `getAttr ($node + ".scaleX")`;
+    int $sY = `getAttr ($node + ".scaleY")`;
+    int $sZ = `getAttr ($node + ".scaleZ")`;
+    setAttr ($node + ".scaleX") ($sX * 2);
+    setAttr ($node + ".scaleY") ($sY * 2);
+    setAttr ($node + ".scaleZ") ($sZ * 2);
+};
+
+
+
+
+
+int $faceCount[] = `polyEvaluate -f pCube1`;
+int $singleCount = $faceCount[0];
+
+for( $i =0; $i< $singleCount-1; ++$i)
+{
+    int $currInt = $i;
+     select -add pCube1.f[$currInt] ;
+};
+
+string $faces[] = `ls -sl`;
+for ($node in $faces)
+{
+    print("poop");
+};
+poopint $faceCount[] = `polyEvaluate -f pCube1`;
+int $singleCount = $faceCount[0];
+
+for( $i =0; $i< $singleCount; ++$i)
+{
+     print("poop");
+};
+pooppooppooppooppooppoopint $faceCount[] = `polyEvaluate -f pCube1`;
+int $singleCount = $faceCount[0];
+
+for( $i =0; $i< $singleCount-1; ++$i)
+{
+    int $currInt = $i;
+     select -add pCube1.f[$currInt] ;
+};
+
+string $faces[] = `ls -tr`;
+for ($node in $faces)
+{
+    print("poop\n");
+};
+
+
+int $faceCount[] = `polyEvaluate -f pCube1`;
+int $singleCount = $faceCount[0];
+
+for( $i =0; $i< $singleCount-1; ++$i)
+{
+    int $currInt = $i;
+     select -add pCube1.f[$currInt] ;
+};
+
+string $faces[] = `ls -tr`;
+for ($node in $faces)
+{
+    int $sX = `getAttr ($node + ".scaleX")`;
+    int $sY = `getAttr ($node + ".scaleY")`;
+    int $sZ = `getAttr ($node + ".scaleZ")`;
+    setAttr ($node + ".scaleX") ($sX * 2);
+    setAttr ($node + ".scaleY") ($sY * 2);
+    setAttr ($node + ".scaleZ") ($sZ * 2);
+    print("poop\n");
+};
+
+
+select pCube1;
+string $meshes[] = `ls -type mesh`;
+select -cl  ;
+select $meshes[0];
+
+select pCube1;
+string $meshes[] = `ls -type mesh`;
+select -cl  ;
+string $mesh1 = $meshes[0];
+select -r $mesh1 ;
+int $faceCount[] = `polyEvaluate -f`;
+print( "numFaces=" + $faceCount[0] );
+select -r ( $mesh1+".f[0]");
+string $faceCurr[] = `ls -sl`;
+select -cl  ;
+select $faceCurr[0];
+float $sZ[] = `xform -q -ws -t ($faceCurr[0]);
+
+
+
+// Final Face Matrix 
+select pCube1;
+string $obj[] = `ls -sl`;
+xform -q -ws -t ($obj[0] + ".f[0]");
+
+//Select All Faces in a loop
+select -cl  ;
+select pCube1;
+string $obj[] = `ls -sl`;
+int $faceCount[] = `polyEvaluate -f $obj[0]`;
+int $singleCount = $faceCount[0];
+
+for( $i =0; $i< $singleCount; ++$i)
+{
+    int $currInt = $i;
+    select -add pCube1.f[$currInt] ;
+    float $sz[] = `xform -q -ws -t ($obj[0] + ".f["+$i+"]")`;
+    print ($sz);
+     
+};
+
+
+
+
+

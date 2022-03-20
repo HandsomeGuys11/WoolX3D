@@ -1,16 +1,22 @@
 #pragma once
-#ifndef HELLOMAYA_H
-#define HELLOMAYA_H
+#ifndef WoolXMain_H
+#define WoolXMain_H
 #include <maya/MArgList.h>
 #include <maya/MObject.h>
 #include <maya/MGlobal.h>
 #include <maya/MPxCommand.h>
+#include <string>
+#include <maya/MSyntax.h>
+#include <maya/MArgDatabase.h>
+
 // custom Maya command
-class helloMaya : public MPxCommand
+class WoolXMain : public MPxCommand
 {
 public:
-	helloMaya() {};
+	WoolXMain() {};
 	virtual MStatus doIt(const MArgList& args);
 	static void* creator();
+	static MSyntax createSyntax();
+	~WoolXMain();
 };
 #endif
