@@ -95,7 +95,7 @@ void GenerateKnitThreads(std::vector<float> &matrixVals)
 			}
 		}
 		//One string contructed Call the mel Command 
-		GenerateMayaKnit(i);
+		GenerateMayaKnit(i+1);
 	}
 }
 
@@ -150,11 +150,11 @@ EXPORT MStatus initializePlugin(MObject obj)
 	MString GuiCommand;
 	if (User == 0) //Shubham
 	{
-		GuiCommand = "source \"" + plugin.loadPath() + "/mycommand.txt\"";
+		GuiCommand = "source \"" + plugin.loadPath() + "/GUI.mel\"";
 	}
 	if (User == 1) //Sebastian
 	{
-		GuiCommand = "source \"" + plugin.loadPath() + "/mycommand.txt\"";
+		GuiCommand = "source \"" + plugin.loadPath() + "/GUI.mel\"";
 	}
 
 	//status = plugin.registerUI("createWoolXMenu", "deleteWoolXMenu");
