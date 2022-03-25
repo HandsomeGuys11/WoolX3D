@@ -1,0 +1,94 @@
+global proc SelectGrammar()
+{
+    global string $path;
+    global string $grammar;
+    global string $scrollField;
+   
+    $path = `fileDialog -directoryMask "*.txt"`;
+    $file = `fopen $path "r"`;
+    $grammar = `fread $file $grammar`;
+    scrollField -edit -text $grammar $scrollField;
+    fclose $file;
+}
+
+global proc ExecuteLSystemCmd()
+{
+    global string $iterationSlider;
+    global string $stepSizeSlider;
+    global string $angleSlider;
+    global string $grammar;
+    
+    int $i = `intSliderGrp -q -v $iterationSlider`;
+    float $ss = `floatSliderGrp -q -v $stepSizeSlider`;
+    float $a = `floatSliderGrp -q -v $angleSlider`;
+    
+    print ("INFO: " + "iteration = " + $i + " stepSize = " + $ss + " angle = " + $a + " grammar = " + $grammar + "\n");
+    LSystemCmd -ss $ss -i $i -a $a -g $grammar;
+}
+
+global proc ExecuteLSystemCmdDynamic()
+{
+    print ("Executing Dynamic Node Creation");
+    createNode transform -n LSystem1;
+	createNode mesh -n LSystemShape1 -p LSystem1;
+	sets -add initialShadingGroup LSystemShape1;
+	createNode LSystemNode -n LSystemNode1;
+	connectAttr time1.outTime LSystemNode1.Time;
+	connectAttr LSystemNode1.OutMesh LSystemShape1.inMesh;
+}
+
+global proc DeleteGUI()
+{
+    if (`window -exists newWindow`)
+        deleteUI newWindow;
+}
+
+    // File Select Window
+    global string $scrollField;
+
+    if (`window -exists newWindow`)
+        deleteUI newWindow;
+    if (!`window -exists newWindow`)
+        window -widthHeight 600 400 -title "LSystem App" newWindow;
+    
+    columnLayout -adjustableColumn true;          
+        string $currForm = `formLayout -numberOfDivisions 2`;
+            string $browseButton = `button -command SelectGrammar -label "Browse"`;
+            string $browseText = `text -font boldLabelFont -label "Browse for grammar files"`;
+            formLayout -edit
+                -attachForm $browseText "left" 0
+                -attachForm $browseButton "right" 0
+                $currForm;
+            setParent ..;
+        $scrollField = `scrollField -wordWrap off -height 50 -text ""`;
+        setParent ..;
+
+    //Sliders	
+	global string $iterationSlider;
+    global string $stepSizeSlider;
+    global string $angleSlider;
+    
+    frameLayout -label "LSystem Parameters";
+    $iterationSlider = `intSliderGrp -label "Iterations" -field true`;
+    $stepSizeSlider = `floatSliderGrp -label "Step size" -field true`;
+    $angleSlider = `floatSliderGrp -label "Angle" -field true`;
+    setParent ..;
+	
+
+    //ExecutionButtons
+	string $formButtons = `formLayout -numberOfDivisions 3`;
+    string $CreateButton = `button -label "Create Static" -command ExecuteLSystemCmd`;
+    string $CancelButton = `button -label "Cancel" -command DeleteGUI`;
+	string $CreateButton2 = `button -label "Create Dynamic Node" -command ExecuteLSystemCmdDynamic`;
+    formLayout -edit
+        -attachForm $CreateButton "left" 100 
+		-attachForm $CreateButton2 "left" 200 
+        -attachForm $CancelButton "right" 100 
+        $formButtons;
+		
+showWindow newWindow;
+
+
+
+
+
