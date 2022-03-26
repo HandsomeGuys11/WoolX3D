@@ -157,7 +157,7 @@ EXPORT MStatus initializePlugin(MObject obj)
 		GuiCommand = "source \"" + plugin.loadPath() + "/GUI.mel\"";
 	}
 
-	//status = plugin.registerUI("createWoolXMenu", "deleteWoolXMenu");
+	status = plugin.registerUI("createWoolXMenu", "deleteWoolXMenu");
 
 	MGlobal::executeCommand(GuiCommand);
 

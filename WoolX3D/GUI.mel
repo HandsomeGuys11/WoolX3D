@@ -22,109 +22,188 @@ global proc deleteWoolXMenu()
 	
 }
 
+
+
+
+global proc GenerateFabric_Deprecated()
+{
+// Cool green Loop ----------------------------
+circle -c 0 0 0 -nr 0 1 0 -sw 360 -r 0.3 -d 3 -ut 0 -tol 0.01 -s 8 -ch 1;
+curve -p -0.65 0 -0.990 -p -0.546 0 0.963 -p -2.990 0 4.474 -p 0.062 0 6.349 -p 3.348 0 4.296 -p 0.628 0 0.893 -p 0.65 0 -1.021 - name curve1;
+select - r nurbsCircle1 curve1;
+extrude - ch true - rn false - po 1 - et 2 - ucp 1 - fpt 1 - upn 1 - rotation 0 - scale 1 - rsp 1 nurbsCircle1 curve1;
+polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface1;
+polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface1;
+polyNormal -normalMode 0 -userNormalMode 0 -ch 1 extrudedSurface1;
+
+// Red Loop 1 ----------------------------
+
+curve -p -4.658 0 1.716 -p -2.662 0 1.655 -p -2.019 0.993 2.669 -p 0.137 -0.928 2.222 -p -0.352 -0.520 4.891 -p -0.770 0.692 3.477  -p -0.65 0 8.299 - name curve2;
+extrude - ch true - rn false - po 1 - et 2 - ucp 1 - fpt 1 - upn 1 - rotation 0 - scale 1 - rsp 1 nurbsCircle1 curve2;
+polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface2;
+polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface2;
+polyNormal -normalMode 0 -userNormalMode 0 -ch 1 extrudedSurface2;
+   
+// Red Loop 2 ----------------------------
+
+curve -p 4.658 0 1.716 -p 2.662 0 1.655 -p 2.019 0.993 2.669 -p -0.137 -0.928 2.222 -p 0.352 -0.520 4.891 -p 0.770 0.692 3.477  -p 0.65 0 8.299 - name curve3;
+extrude - ch true - rn false - po 1 - et 2 - ucp 1 - fpt 1 - upn 1 - rotation 0 - scale 1 - rsp 1 nurbsCircle1 curve3;
+polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface3;
+polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface3;
+polyNormal -normalMode 0 -userNormalMode 0 -ch 1 extrudedSurface3;
+
+// Select all created objects
+
+select -r nurbsCircle1 curve1 extrudedSurface1 curve2 extrudedSurface2 curve3 extrudedSurface3 ;
+
+// Group
+
+group -name Knit;
+
+//Delete History
+DeleteHistory;
+
+//Setting the scale and centering
+setAttr "Knit.scaleX" 0.108;
+setAttr "Knit.scaleY" 0.108;
+setAttr "Knit.scaleZ" 0.108;
+setAttr "Knit.translateZ" -3.755;
+
+//Reset transformation
+select -r Knit ;
+makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+
+ 
+}
+
+proc vector getFaceCenter( string $pFaceName ) {
+        
+        vector $vertexPositions[] = `xform -q -ws -t $pFaceName`;
+        
+        vector $sum = << 0, 0, 0 >>;
+        
+        vector $v;
+        for( $v in $vertexPositions ) {
+            
+            $sum = $sum + $v;
+            
+        }
+        
+        vector $average;
+        
+        int $numVertices = size( $vertexPositions );
+        
+        // $average = $sum / $numVertices;
+        
+        if( catch( $average = $sum / $numVertices ) ) {
+            print( "Attempt to divide by 0: " + getLastError() );
+            $average = << 0, 0, 0 >>;
+        }
+        
+        return $average;
+        
+    }
+    
+    proc vector getFaceNormal( string $pFaceName ) {
+        
+        string $polyInfoResult[] = `polyInfo -fn $pFaceName`;
+        string $stringToParse = $polyInfoResult[0];
+        
+        string $items[];
+        int $numTokens = `tokenize $stringToParse " " $items`;
+        
+        float $x = ($items[2]);
+        float $y = ($items[3]);
+        float $z = ($items[4]);
+        
+        vector $normal = << $x, $y, $z >>;
+        
+        string $parentShape[] = `listRelatives -parent $pFaceName`;
+        string $parentTransform[] = `listRelatives -parent $parentShape[0]`;
+        
+        float $transformMatrix[] = `xform -q -m -ws $parentTransform[0]`;
+        
+        vector $worldNormal = `pointMatrixMult $normal $transformMatrix`;
+        
+        vector $unitWorldNormal = unit( $worldNormal );
+        
+        return $unitWorldNormal;
+        
+    }
+    
+    proc moveAlign( string $pObjectName, vector $pNormal, vector $pPosition ) {
+        
+        vector $tangent1 = unit( cross( $pNormal, << 0, 1, 0 >> ) );
+        if( mag( $tangent1 ) == 0 ) {
+            $tangent1 = << 1, 0, 0 >>;
+        }
+        
+        vector $tangent2 = unit( cross( $pNormal, $tangent1 ) );
+        
+        matrix $m[4][4] = <<
+            ($tangent2.x), ($tangent2.y), ($tangent2.z), 0.0;
+            ($pNormal.x),  ($pNormal.y),  ($pNormal.z),  0.0;
+            ($tangent1.x), ($tangent1.y), ($tangent1.z), 0.0;
+            ($pPosition.x), ($pPosition.y), ($pPosition.z), 1.0 >>;
+        
+        xform -ws -m
+            ($m[0][0]) ($m[0][1]) ($m[0][2]) ($m[0][3])
+            ($m[1][0]) ($m[1][1]) ($m[1][2]) ($m[1][3])
+            ($m[2][0]) ($m[2][1]) ($m[2][2]) ($m[2][3]) 
+            ($m[3][0]) ($m[3][1]) ($m[3][2]) ($m[3][3]) $pObjectName;
+        
+    }
+	
+
 global proc GenerateFabric()
 {
-// Cool green Loop ----------------------------
-circle -c 0 0 0 -nr 0 1 0 -sw 360 -r 0.3 -d 3 -ut 0 -tol 0.01 -s 8 -ch 1;
-curve -p -0.65 0 -0.990 -p -0.546 0 0.963 -p -2.990 0 4.474 -p 0.062 0 6.349 -p 3.348 0 4.296 -p 0.628 0 0.893 -p 0.65 0 -1.021 - name curve1;
-select - r nurbsCircle1 curve1;
-extrude - ch true - rn false - po 1 - et 2 - ucp 1 - fpt 1 - upn 1 - rotation 0 - scale 1 - rsp 1 nurbsCircle1 curve1;
-polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface1;
-polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface1;
-polyNormal -normalMode 0 -userNormalMode 0 -ch 1 extrudedSurface1;
-
-// Red Loop 1 ----------------------------
-
-curve -p -4.658 0 1.716 -p -2.662 0 1.655 -p -2.019 0.993 2.669 -p 0.137 -0.928 2.222 -p -0.352 -0.520 4.891 -p -0.770 0.692 3.477  -p -0.65 0 8.299 - name curve2;
-extrude - ch true - rn false - po 1 - et 2 - ucp 1 - fpt 1 - upn 1 - rotation 0 - scale 1 - rsp 1 nurbsCircle1 curve2;
-polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface2;
-polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface2;
-polyNormal -normalMode 0 -userNormalMode 0 -ch 1 extrudedSurface2;
-   
-// Red Loop 2 ----------------------------
-
-curve -p 4.658 0 1.716 -p 2.662 0 1.655 -p 2.019 0.993 2.669 -p -0.137 -0.928 2.222 -p 0.352 -0.520 4.891 -p 0.770 0.692 3.477  -p 0.65 0 8.299 - name curve3;
-extrude - ch true - rn false - po 1 - et 2 - ucp 1 - fpt 1 - upn 1 - rotation 0 - scale 1 - rsp 1 nurbsCircle1 curve3;
-polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface3;
-polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface3;
-polyNormal -normalMode 0 -userNormalMode 0 -ch 1 extrudedSurface3;
-
-// Select all created objects
-
-select -r nurbsCircle1 curve1 extrudedSurface1 curve2 extrudedSurface2 curve3 extrudedSurface3 ;
-
-// Group
-
-group -name Knit;
-
-//Delete History
-DeleteHistory;
-
-//Setting the scale and centering
-setAttr "Knit.scaleX" 0.108;
-setAttr "Knit.scaleY" 0.108;
-setAttr "Knit.scaleZ" 0.108;
-setAttr "Knit.translateZ" -3.755;
-
-//Reset transformation
-select -r Knit ;
-makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
-
- 
+	string $obj[] = `ls -sl`;
+	int $faceCount[] = `polyEvaluate -f $obj[0]`;
+	int $singleCount = $faceCount[0]-1;
+	select -cl;
+	
+	CreateFabric();
+	select -cl;
+	print("poop");
+    
+    //select Knit;
+    //select -tgl pSphere1.f[0:399];
+	
+	select Knit;
+	select -tgl ($obj[0] + ".f[0:" +$singleCount+ "]");
+    
+    string $selection[] = `ls -os -fl`;
+    
+    string $faceNames[] = `filterExpand -selectionMask 34 -expand true $selection`;
+    
+    string $objectToInstance = $selection[0];
+    
+    if( `objectType $objectToInstance` == "transform" ) {
+        
+        string $face;
+        for( $face in $faceNames ) {
+            
+            string $newInstance[] = `instance $objectToInstance`;
+            
+            vector $position = getFaceCenter( $face );
+            
+            // move -a -ws ($position.x) ($position.y) ($position.z) $newInstance;
+            
+            vector $normal = getFaceNormal( $face );
+            
+            moveAlign( $newInstance[0], $normal, $position );
+            
+        }
+        
+    } else {
+        
+        print "Please ensure the first object you select is a transform.";
+        
+    }
 }
 
-global proc GenerateFabric(int i)
-{
-// Cool green Loop ----------------------------
-circle -c 0 0 0 -nr 0 1 0 -sw 360 -r 0.3 -d 3 -ut 0 -tol 0.01 -s 8 -ch 1;
-curve -p -0.65 0 -0.990 -p -0.546 0 0.963 -p -2.990 0 4.474 -p 0.062 0 6.349 -p 3.348 0 4.296 -p 0.628 0 0.893 -p 0.65 0 -1.021 - name curve1;
-select - r nurbsCircle1 curve1;
-extrude - ch true - rn false - po 1 - et 2 - ucp 1 - fpt 1 - upn 1 - rotation 0 - scale 1 - rsp 1 nurbsCircle1 curve1;
-polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface1;
-polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface1;
-polyNormal -normalMode 0 -userNormalMode 0 -ch 1 extrudedSurface1;
 
-// Red Loop 1 ----------------------------
-
-curve -p -4.658 0 1.716 -p -2.662 0 1.655 -p -2.019 0.993 2.669 -p 0.137 -0.928 2.222 -p -0.352 -0.520 4.891 -p -0.770 0.692 3.477  -p -0.65 0 8.299 - name curve2;
-extrude - ch true - rn false - po 1 - et 2 - ucp 1 - fpt 1 - upn 1 - rotation 0 - scale 1 - rsp 1 nurbsCircle1 curve2;
-polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface2;
-polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface2;
-polyNormal -normalMode 0 -userNormalMode 0 -ch 1 extrudedSurface2;
-   
-// Red Loop 2 ----------------------------
-
-curve -p 4.658 0 1.716 -p 2.662 0 1.655 -p 2.019 0.993 2.669 -p -0.137 -0.928 2.222 -p 0.352 -0.520 4.891 -p 0.770 0.692 3.477  -p 0.65 0 8.299 - name curve3;
-extrude - ch true - rn false - po 1 - et 2 - ucp 1 - fpt 1 - upn 1 - rotation 0 - scale 1 - rsp 1 nurbsCircle1 curve3;
-polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface3;
-polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface3;
-polyNormal -normalMode 0 -userNormalMode 0 -ch 1 extrudedSurface3;
-
-// Select all created objects
-
-select -r nurbsCircle1 curve1 extrudedSurface1 curve2 extrudedSurface2 curve3 extrudedSurface3 ;
-
-// Group
-
-group -name Knit;
-
-//Delete History
-DeleteHistory;
-
-//Setting the scale and centering
-setAttr "Knit.scaleX" 0.108;
-setAttr "Knit.scaleY" 0.108;
-setAttr "Knit.scaleZ" 0.108;
-setAttr "Knit.translateZ" -3.755;
-
-//Reset transformation
-select -r Knit ;
-makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
-
- 
-}
-
-global proc GenerateFabric2(int i)
+global proc CreateFabric()
 {
 // Cool green Loop ----------------------------
 circle -c 0 0 0 -nr 0 1 0 -sw 360 -r 0.3 -d 3 -ut 0 -tol 0.01 -s 8 -ch 1;
