@@ -24,19 +24,22 @@ global proc createWoolXMenu()
 
 global proc deleteWoolXMenu()
 {
-	
+	if (`window -exists myWindow`)
+        deleteUI myWindow;
 }
 
 global proc DisplayWoolXDialog()
 {
     global string $csvScrollField;
+    global string $objScrollField;
+    global string $MaterialScrollField;
     
     if (`window -exists myWindow`)
         deleteUI myWindow;
     if (!`window -exists myWindow`)
         window -widthHeight 500 500 -title "WoolX3D Main Menu" myWindow;
 
-    frameLayout -label "For the first step, select either your custom CSV knitting instructions file or choose one from our premade configurations.";
+    frameLayout -label "WoolX3D - Solution for creating 3D knitted garments";
     frameLayout -label " ";
     
     columnLayout -adjustableColumn true;          
@@ -61,33 +64,102 @@ global proc DisplayWoolXDialog()
         setParent ..;
     $csvScrollField = `scrollField -wordWrap off -height 50 -text ""`;
     setParent ..;
-        
-    global string $iterationSlider;
-    global string $stepSizeSlider;
-    global string $angleSlider;
-    
-    frameLayout -label "LSystem Parameters";
-    $iterationSlider = `intSliderGrp -label "Iterations" -field true`;
-    $stepSizeSlider = `floatSliderGrp -label "Default step size" -field true`;
-    $angleSlider = `floatSliderGrp -label "Default angle" -field true`;
+
+    frameLayout -label "Now choose the desired input geometry from the scene.";
+    frameLayout -label " ";
+
+    columnLayout -adjustableColumn true;          
+    string $formBrowse = `formLayout -numberOfDivisions 2`;
+        string $bBrowse = `button -command addGeometryToList -label "Add"`;
+        string $tBrowse = `text -font boldLabelFont -label "Select geometry on the viewport and click add."`;
+        formLayout -edit
+            -attachForm $tBrowse "left" 0
+            -attachForm $bBrowse "right" 0
+            $formBrowse;
+        setParent ..;
+    $objScrollField = `scrollField -wordWrap off -height 50 -text ""`;
     setParent ..;
+
+    frameLayout -label "Next, select a material preset for the knitted fabric.";
+    frameLayout -label " ";
+
+    columnLayout -adjustableColumn true;          
+    string $formBrowse = `formLayout -numberOfDivisions 2`;
+        string $bBrowse = `button -command chooseMaterial -label "Choose Material"`;
+        string $tBrowse = `text -font boldLabelFont -label "Choose a fabric material preset: "`;
+        formLayout -edit
+            -attachForm $tBrowse "left" 0
+            -attachForm $bBrowse "right" 0
+            $formBrowse;
+        setParent ..;
+    $MaterialScrollField = `scrollField -wordWrap off -height 50 -text ""`;
+    setParent ..;
+        
+    global string $stepSizeSlider;
+    
+    frameLayout -label "Knitting Stitch Parameters";
+    $stepSizeSlider = `floatSliderGrp -label "Diameter in mm: " -field true`;
     
     string $formConfirm = `formLayout -numberOfDivisions 2`;
-    string $bCreate = `button -label "Create" -command callLSystemCmd`;
-    string $bCancel = `button -label "Cancel" -command deleteLSystemUI`;
+    string $bCreate = `button -label "Create" -command GenerateFabric`;
+    string $bCancel = `button -label "Cancel" -command deleteWoolXMenu`;
     formLayout -edit
-        -attachForm $bCreate "left" 0
-        -attachForm $bCancel "right" 0
+        -attachForm $bCreate "right" 0
+        -attachForm $bCancel "left" 0
         $formConfirm;
     
     showWindow myWindow;
 }
 
+global proc chooseMaterial()
+{
+	//TODO: FINISH THIS METHOD.
+
+		window;
+	paneLayout;
+
+	$ListName = `textScrollList MaterialList`;
+	textScrollList -e -append "Example Pattern 1" MaterialList; //-dcc ("GetSelection " + $ListName) PatternList ;
+	textScrollList -e -append "Example Pattern 2" MaterialList; //-dcc ("GetSelection " + $ListName) PatternList ;
+	textScrollList -e -append "Example Pattern 3" MaterialList; //-dcc ("GetSelection " + $ListName) PatternList ;
+	textScrollList -e -append "Example Pattern 4" MaterialList;//-dcc ("GetSelection " + $ListName) PatternList ;
+	textScrollList -e -append "Example Pattern 5" MaterialList; //-dcc ("GetSelection " + $ListName) PatternList ;
+
+
+
+	showWindow;
+
+
+}
+
+
+global proc addGeometryToList()
+{
+
+	global string $csvPath;
+    global string $csv;
+    global string $objScrollField;  
+
+    string $selObjectos [ ] = `ls -sl`;
+	for ( $obj in $selObjectos){
+		  scrollField -e -text ($obj) $objScrollField;
+		  //Could use append too.
+	}
+
+	//string $poopy = `scrollField -q -text $objScrollField`;
+	//print($poopy);
+
+
+}
+
+
 global proc selectCSVFileDialog()
 {
+
     global string $csvPath;
     global string $csv;
     global string $csvScrollField;  
+
     $csvPath = `fileDialog -directoryMask "*.csv"`;  
     $file = `fopen $csvPath "r"`;
     $csv = `fread $file $csv`;
@@ -104,7 +176,54 @@ global proc selectCSVFileDialog()
 global proc GetSelection(string $v)
 {
 	$s = `textScrollList -q -selectItem $v`;
-	print($s);
+	
+	$csvLoadPath = "";
+
+	global string $csvPath;
+    global string $csv;
+    global string $csvScrollField;  
+
+	
+	if($s[0] == "Example Pattern 1")
+	{
+	    $csvLoadPath = `internalVar -usd` + "knits/sample1.csv";
+	    //print($csvLoadPath);
+	}
+	else if($s[0] == "Example Pattern 2")
+	{
+	    $csvLoadPath = `internalVar -usd` + "knits/sample2.csv";
+	    //print($csvLoadPath);
+	}
+	else if($s[0] == "Example Pattern 3")
+	{
+	    $csvLoadPath = `internalVar -usd` + "knits/sample3.csv";
+	  
+	    //print($csvLoadPath);
+	}
+	else if($s[0] == "Example Pattern 4")
+	{
+	    $csvLoadPath = `internalVar -usd` + "knits/sample4.csv";
+	  
+	    //print($csvLoadPath);
+	} 
+	else if($s[0] == "Example Pattern 5")
+	{
+	    $csvLoadPath = `internalVar -usd` + "knits/sample5.csv";
+	  
+	    //print($csvLoadPath);
+	}  
+
+
+	$file = `fopen $csvLoadPath "r"`;
+    $csv = `fread $file $csv`;
+    //print($file);
+
+    scrollField -edit -text $csv $csvScrollField;
+    global string $message;
+    $message = "The knitting instructions " + $csvPath + " got loaded succesfully. \nHere's what they look like: \n";
+    scrollField -edit -insertText $message $csvScrollField;
+    fclose $file;
+
 }
 
 
@@ -424,7 +543,17 @@ DeleteAllHistory;
 global proc GenerateFabric()
 {
 
-	string $obj[] = `ls -sl`;
+	global string $objScrollField;
+
+	string $selectedOBJ = `scrollField -q -text $objScrollField`;
+	
+	if($selectedOBJ == "")
+	{
+
+	}
+	else
+	{
+		string $obj[] = `ls -sl`;
 	int $faceCount[] = `polyEvaluate -f $obj[0]`;
 	int $singleCount = $faceCount[0]-1;
 	select -cl;
@@ -487,6 +616,13 @@ global proc GenerateFabric()
     select -all;
     select -tgl $obj[0];
     Group;
+
+
+	}
+
+
+	
+	
 
 
 
