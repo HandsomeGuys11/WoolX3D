@@ -1,6 +1,13 @@
 //internalVar -usd;
 //Place knits in internalVar -usd; /knits
 
+//circle -c 0 0 0 -nr 0 1 0 -sw 360 -r 0.3 -d 3 -ut 0 -tol 0.01 -s 8 -ch 1;
+//curve -d 1 -p 0 0 0 -p 0 10 0 -p 10 10 0  -k 0 -k 1 -k 2 -name curve1;
+//select -r nurbsCircle1 curve1 ; 
+//extrude "nurbsCircle1" "curve1";
+
+//Modify -> Convert -> Nurbs to Poligons
+
 global proc createWoolXMenu()
 {
     if (`menu -exists WoolXMenu`)
@@ -12,8 +19,8 @@ global proc createWoolXMenu()
         setParent $gMainWindow;
 
         menu -label "WoolX3D" WoolXMenu;
-            menuItem -label "Create Knitted Fabric" -command GenerateFabric;
-            menuItem -divider true;
+            //menuItem -label "Create Knitted Fabric" -command GenerateFabric;
+            //menuItem -divider true;
             menuItem -label "Open WoolX3D Menu" -command DisplayWoolXDialog;
             menuItem -divider true;
 			//menuItem -label "Create Row Stitch Mesh" -command createSelectedRandomNodeNetwork;
@@ -95,10 +102,10 @@ global proc DisplayWoolXDialog()
     $MaterialScrollField = `scrollField -wordWrap off -height 50 -text ""`;
     setParent ..;
         
-    global string $stepSizeSlider;
+    global string $radiusSlider;
     
     frameLayout -label "Knitting Stitch Parameters";
-    $stepSizeSlider = `floatSliderGrp -label "Diameter in mm: " -field true`;
+    $radiusSlider = `floatSliderGrp -label "Diameter in mm: " -field true -minValue 0.1 -maxValue 1.0 -value 0.3 -ss 0.01`;
     
     string $formConfirm = `formLayout -numberOfDivisions 2`;
     string $bCreate = `button -label "Create" -command GenerateFabric`;
@@ -478,16 +485,24 @@ proc vector getFaceCenter( string $pFaceName ) {
         
     }
 
-global proc CreateFabric()
+global proc CreateFabric(float $radius)
 {
 // Cool green Loop ----------------------------
-circle -c 0 0 0 -nr 0 1 0 -sw 360 -r 0.3 -d 3 -ut 0 -tol 0.01 -s 8 -ch 1;
+circle -c 0 0 0 -nr 0 1 0 -sw 360 -r $radius -d 3 -ut 0 -tol 0.01 -s 8 -ch 1;
 curve -p -0.65 0 -0.990 -p -0.546 0 0.963 -p -2.990 0 4.474 -p 0.062 0 6.349 -p 3.348 0 4.296 -p 0.628 0 0.893 -p 0.65 0 -1.021 - name curve1;
 select - r nurbsCircle1 curve1;
 extrude - ch true - rn false - po 1 - et 2 - ucp 1 - fpt 1 - upn 1 - rotation 0 - scale 1 - rsp 1 nurbsCircle1 curve1;
 //polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface1;
 //polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface1;
-polyNormal -normalMode 0 -userNormalMode 0 -ch 1 extrudedSurface1;
+//polyNormal -normalMode 0 -userNormalMode 0 -ch 1 extrudedSurface1;
+
+//circle -c 0 0 0 -nr 0 1 0 -sw 360 -r 0.3 -d 3 -ut 0 -tol 0.01 -s 8 -ch 1;
+//curve -d 1 -p -0.65 0 -0.990 -p -0.546 0 0.963 -p -2.990 0 4.474 -p 0.062 0 6.349 -p 3.348 0 4.296 -p 0.628 0 0.893 -p 0.65 0 -1.021 -k 0 -k 1 -k 2 -k 3 -k 4 -k 5 -k 6 -name curve1;
+//select - r nurbsCircle1 curve1;
+//extrude - ucp 1 - fpt 1 - upn 1 nurbsCircle1 curve1;
+//nurbsToPoly -mnd 1  -ch 1 -f 3 -pt 1 -pc 200 -chr 0.9 -ft 0.01 -mel 0.001 -d 0.1 -ut 1 -un 3 -vt 1 -vn 3 -uch 0 -ucr 0 -cht 0.01 -es 0 -ntr 0 -mrt 0 -uss 1 "extrudedSurface1";
+//select -r extrudedSurface1;
+//delete;
 
 
 // Red Loop 1 ----------------------------
@@ -496,7 +511,7 @@ curve -p -4.658 0 1.716 -p -2.662 0 1.655 -p -2.019 0.993 2.669 -p 0.137 -0.928 
 extrude - ch true - rn false - po 1 - et 2 - ucp 1 - fpt 1 - upn 1 - rotation 0 - scale 1 - rsp 1 nurbsCircle1 curve2;
 //polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface2;
 //polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface2;
-polyNormal -normalMode 0 -userNormalMode 0 -ch 1 extrudedSurface2;
+//polyNormal -normalMode 0 -userNormalMode 0 -ch 1 extrudedSurface2;
    
 // Red Loop 2 ----------------------------
 
@@ -504,7 +519,7 @@ curve -p 4.658 0 1.716 -p 2.662 0 1.655 -p 2.019 0.993 2.669 -p -0.137 -0.928 2.
 extrude - ch true - rn false - po 1 - et 2 - ucp 1 - fpt 1 - upn 1 - rotation 0 - scale 1 - rsp 1 nurbsCircle1 curve3;
 //polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface3;
 //polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface3;
-polyNormal -normalMode 0 -userNormalMode 0 -ch 1 extrudedSurface3;
+//polyNormal -normalMode 0 -userNormalMode 0 -ch 1 extrudedSurface3;
 
 select -cl  ;
 
@@ -544,31 +559,35 @@ global proc GenerateFabric()
 {
 
 	global string $objScrollField;
+	global string $radiusSlider;
 
 	string $selectedOBJ = `scrollField -q -text $objScrollField`;
+
+	float $radius = `floatSliderGrp -q -v $radiusSlider`;
 	
 	if($selectedOBJ == "")
 	{
-
+		//DO SOMETHING HERE WHERE OBJECT HAS NOT BEEN SELECTED
 	}
 	else
 	{
-		string $obj[] = `ls -sl`;
-	int $faceCount[] = `polyEvaluate -f $obj[0]`;
+		//string $obj[] = `ls -sl`;
+	int $faceCount[] = `polyEvaluate -f $selectedOBJ`;
 	int $singleCount = $faceCount[0]-1;
 	select -cl;
 
-	//Reverse normals
-	polyNormal -normalMode 0 -userNormalMode 0 -ch 1 $obj[0];
+	//Reverse normals sebastian fix
+	//polyNormal -normalMode 0 -userNormalMode 0 -ch 1 $selectedOBJ;
 	
-	CreateFabric();
+
+	CreateFabric $radius;
 	select -cl;
     
     //select Knit;
     //select -tgl pSphere1.f[0:399];
 	
 	select Knit;
-	select -tgl ($obj[0] + ".f[0:" +$singleCount+ "]");
+	select -tgl ($selectedOBJ + ".f[0:" +$singleCount+ "]");
     
     string $selection[] = `ls -os -fl`;
     
@@ -598,14 +617,14 @@ global proc GenerateFabric()
         print "Please ensure the first object you select is a transform.";
         
     }
-    //Reverse normals
-    polyNormal -normalMode 0 -userNormalMode 0 -ch 1 $obj[0];
+    //Reverse normals sebastian fix
+    //polyNormal -normalMode 0 -userNormalMode 0 -ch 1 $selectedOBJ;
 
  
-    //Do this commands to scale down the original mesh a bit and delete the base knit
-    select -cl;
-    select $obj[0];
-    scale -r 0.993296 0.993296 0.993296 ;
+    //Do this commands to scale down the original mesh a bit and delete the base knit sebastian fix
+    //select -cl;
+    //select $selectedOBJ;
+    //scale -r 0.993296 0.993296 0.993296 ;
     //doDelete;
     select -cl;
     select Knit;
@@ -614,13 +633,13 @@ global proc GenerateFabric()
     //Now select all knits and group them into KnittedMesh
     select -cl;
     select -all;
-    select -tgl $obj[0];
+    select -tgl $selectedOBJ;
     Group;
 
 
 	}
 
-
+	
 	
 	
 
