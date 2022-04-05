@@ -1,3 +1,6 @@
+//internalVar -usd;
+//Place knits in internalVar -usd; /knits
+
 global proc createWoolXMenu()
 {
     if (`menu -exists WoolXMenu`)
@@ -11,8 +14,10 @@ global proc createWoolXMenu()
         menu -label "WoolX3D" WoolXMenu;
             menuItem -label "Create Knitted Fabric" -command GenerateFabric;
             menuItem -divider true;
-			menuItem -label "Create Row Stitch Mesh" -command createSelectedRandomNodeNetwork;
-			menuItem -divider true;
+            menuItem -label "Open WoolX3D Menu" -command DisplayWoolXDialog;
+            menuItem -divider true;
+			//menuItem -label "Create Row Stitch Mesh" -command createSelectedRandomNodeNetwork;
+			//menuItem -divider true;
 			
     }
 }
@@ -20,6 +25,108 @@ global proc createWoolXMenu()
 global proc deleteWoolXMenu()
 {
 	
+}
+
+global proc DisplayWoolXDialog()
+{
+    global string $csvScrollField;
+    
+    if (`window -exists myWindow`)
+        deleteUI myWindow;
+    if (!`window -exists myWindow`)
+        window -widthHeight 500 500 -title "WoolX3D Main Menu" myWindow;
+
+    frameLayout -label "For the first step, select either your custom CSV knitting instructions file or choose one from our premade configurations.";
+    frameLayout -label " ";
+    
+    columnLayout -adjustableColumn true;          
+        string $formBrowse = `formLayout -numberOfDivisions 2`;
+            string $bBrowse = `button -command selectCSVFileDialog -label "Browse"`;
+            string $tBrowse = `text -font boldLabelFont -label "Select your source for knitting instructions: "`;
+            formLayout -edit
+                -attachForm $tBrowse "left" 0
+                -attachForm $bBrowse "right" 0
+                $formBrowse;
+            setParent ..;
+        setParent ..;
+
+    columnLayout -adjustableColumn true;          
+    string $formBrowse = `formLayout -numberOfDivisions 2`;
+        string $bBrowse = `button -command selectPremadeCSV -label "Browse"`;
+        string $tBrowse = `text -font boldLabelFont -label "Or choose from our example knitting settings: "`;
+        formLayout -edit
+            -attachForm $tBrowse "left" 0
+            -attachForm $bBrowse "right" 0
+            $formBrowse;
+        setParent ..;
+    $csvScrollField = `scrollField -wordWrap off -height 50 -text ""`;
+    setParent ..;
+        
+    global string $iterationSlider;
+    global string $stepSizeSlider;
+    global string $angleSlider;
+    
+    frameLayout -label "LSystem Parameters";
+    $iterationSlider = `intSliderGrp -label "Iterations" -field true`;
+    $stepSizeSlider = `floatSliderGrp -label "Default step size" -field true`;
+    $angleSlider = `floatSliderGrp -label "Default angle" -field true`;
+    setParent ..;
+    
+    string $formConfirm = `formLayout -numberOfDivisions 2`;
+    string $bCreate = `button -label "Create" -command callLSystemCmd`;
+    string $bCancel = `button -label "Cancel" -command deleteLSystemUI`;
+    formLayout -edit
+        -attachForm $bCreate "left" 0
+        -attachForm $bCancel "right" 0
+        $formConfirm;
+    
+    showWindow myWindow;
+}
+
+global proc selectCSVFileDialog()
+{
+    global string $csvPath;
+    global string $csv;
+    global string $csvScrollField;  
+    $csvPath = `fileDialog -directoryMask "*.csv"`;  
+    $file = `fopen $csvPath "r"`;
+    $csv = `fread $file $csv`;
+    
+    scrollField -edit -text $csv $csvScrollField;
+    global string $message;
+    $message = "The knitting instructions " + $csvPath + " got loaded succesfully. \nHere's what they look like: \n";
+    scrollField -edit -insertText $message $csvScrollField;
+    fclose $file;
+
+}
+
+
+global proc GetSelection(string $v)
+{
+	$s = `textScrollList -q -selectItem $v`;
+	print($s);
+}
+
+
+global proc selectPremadeCSV()
+{
+		
+
+	window;
+	paneLayout;
+
+	$ListName = `textScrollList PatternList`;
+	textScrollList -e -append "Example Pattern 1" -dcc ("GetSelection " + $ListName) PatternList ;
+	textScrollList -e -append "Example Pattern 2" -dcc ("GetSelection " + $ListName) PatternList ;
+	textScrollList -e -append "Example Pattern 3" -dcc ("GetSelection " + $ListName) PatternList ;
+	textScrollList -e -append "Example Pattern 4" -dcc ("GetSelection " + $ListName) PatternList ;
+	textScrollList -e -append "Example Pattern 5" -dcc ("GetSelection " + $ListName) PatternList ;
+
+
+
+	showWindow;
+
+
 }
 
 
@@ -59,6 +166,10 @@ select -r nurbsCircle1 curve1 extrudedSurface1 curve2 extrudedSurface2 curve3 ex
 // Group
 
 group -name Knit;
+
+//Reverse Normals
+polyNormal -normalMode 0 -userNormalMode 0 -ch 1 Knit;
+//print("Hellooooooooooooooooooooooooooooooooooooooooooooooooooooo");
 
 //Delete History
 DeleteHistory;
@@ -120,8 +231,13 @@ proc vector getFaceCenter( string $pFaceName ) {
 		float $y_axis[] = {0, 1, 0};
 	   vector $vector1 = ($vertexPositions[1] - $vertexPositions[0]);
 	   float $vector1flt[] = {$vector1.x, $vector1.y, $vector1.z};
-	   float $dot_x = abs(dotProduct( $vector1flt, $x_axis, 1 ));
-	   float $dot_y = abs(dotProduct( $vector1flt, $y_axis, 1 ));
+
+	   float $dot_x_1 = dotProduct( $vector1flt, $x_axis, 1 );
+	   float $dot_y_1 = dotProduct( $vector1flt, $y_axis, 1 );
+
+
+	   float $dot_x = abs ($dot_x_1);
+	   float $dot_y = abs ($dot_y_1);
 
 		//X aligned
 		$alignment = 0;
@@ -250,24 +366,25 @@ circle -c 0 0 0 -nr 0 1 0 -sw 360 -r 0.3 -d 3 -ut 0 -tol 0.01 -s 8 -ch 1;
 curve -p -0.65 0 -0.990 -p -0.546 0 0.963 -p -2.990 0 4.474 -p 0.062 0 6.349 -p 3.348 0 4.296 -p 0.628 0 0.893 -p 0.65 0 -1.021 - name curve1;
 select - r nurbsCircle1 curve1;
 extrude - ch true - rn false - po 1 - et 2 - ucp 1 - fpt 1 - upn 1 - rotation 0 - scale 1 - rsp 1 nurbsCircle1 curve1;
-polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface1;
-polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface1;
+//polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface1;
+//polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface1;
 polyNormal -normalMode 0 -userNormalMode 0 -ch 1 extrudedSurface1;
+
 
 // Red Loop 1 ----------------------------
 
 curve -p -4.658 0 1.716 -p -2.662 0 1.655 -p -2.019 0.993 2.669 -p 0.137 -0.928 2.222 -p -0.352 -0.520 4.891 -p -0.770 0.692 3.477  -p -0.65 0 8.299 - name curve2;
 extrude - ch true - rn false - po 1 - et 2 - ucp 1 - fpt 1 - upn 1 - rotation 0 - scale 1 - rsp 1 nurbsCircle1 curve2;
-polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface2;
-polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface2;
+//polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface2;
+//polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface2;
 polyNormal -normalMode 0 -userNormalMode 0 -ch 1 extrudedSurface2;
    
 // Red Loop 2 ----------------------------
 
 curve -p 4.658 0 1.716 -p 2.662 0 1.655 -p 2.019 0.993 2.669 -p -0.137 -0.928 2.222 -p 0.352 -0.520 4.891 -p 0.770 0.692 3.477  -p 0.65 0 8.299 - name curve3;
 extrude - ch true - rn false - po 1 - et 2 - ucp 1 - fpt 1 - upn 1 - rotation 0 - scale 1 - rsp 1 nurbsCircle1 curve3;
-polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface3;
-polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface3;
+//polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface3;
+//polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface3;
 polyNormal -normalMode 0 -userNormalMode 0 -ch 1 extrudedSurface3;
 
 select -cl  ;
@@ -282,7 +399,11 @@ select -add extrudedSurface1 extrudedSurface2 extrudedSurface3 ;
 polyUnite -ch 1 -mergeUVSets 1 -centerPivot -name extrudedSurface1 extrudedSurface1 extrudedSurface2 extrudedSurface3;
 DeleteAllHistory;
 
+//Reverse Normals
+polyNormal -normalMode 0 -userNormalMode 0 -ch 1 extrudedSurface4;
+
 rename extrudedSurface4 Knit;
+
 
 //Setting the scale and centering
 setAttr "Knit.scaleX" 0.108;
@@ -302,10 +423,14 @@ DeleteAllHistory;
 
 global proc GenerateFabric()
 {
+
 	string $obj[] = `ls -sl`;
 	int $faceCount[] = `polyEvaluate -f $obj[0]`;
 	int $singleCount = $faceCount[0]-1;
 	select -cl;
+
+	//Reverse normals
+	polyNormal -normalMode 0 -userNormalMode 0 -ch 1 $obj[0];
 	
 	CreateFabric();
 	select -cl;
@@ -344,6 +469,27 @@ global proc GenerateFabric()
         print "Please ensure the first object you select is a transform.";
         
     }
+    //Reverse normals
+    polyNormal -normalMode 0 -userNormalMode 0 -ch 1 $obj[0];
+
+ 
+    //Do this commands to scale down the original mesh a bit and delete the base knit
+    select -cl;
+    select $obj[0];
+    scale -r 0.993296 0.993296 0.993296 ;
+    //doDelete;
+    select -cl;
+    select Knit;
+    doDelete;
+
+    //Now select all knits and group them into KnittedMesh
+    select -cl;
+    select -all;
+    select -tgl $obj[0];
+    Group;
+
+
+
 }
 
 global proc createSelectedRandomNodeNetwork()

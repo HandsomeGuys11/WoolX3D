@@ -103,7 +103,7 @@ void GenerateKnitThreads(std::vector<float> &matrixVals)
 MStatus WoolXMain::doIt(const MArgList& argList)
 {
 	MStatus status;
-	MGlobal::displayInfo("Hello World!ytytuygyuty");
+	MGlobal::displayInfo("This is my own test");
 	// <<<your code goes here>>>
 	//MString name = "Please add a name with -name";
 	//MString id = "Please add an id with -id";
@@ -136,7 +136,7 @@ MStatus WoolXMain::doIt(const MArgList& argList)
 		matrixVals.push_back(std::stof(splittedValues[i].asChar()) );
 	}
 	GenerateKnitThreads(matrixVals);
-	MString finalString = MString() + "confirmDialog -title \"Hello Maya\"" + " -message" + "\"" + "Matrix: " + transformString + "\"";
+	MString finalString = MString() + "confirmDialog -title \"Hello Maya my test\"" + " -message" + "\"" + "Matrix: " + transformString + "\"";
 	MGlobal::executeCommand(finalString);
 	return status;
 }
@@ -170,7 +170,7 @@ EXPORT MStatus uninitializePlugin(MObject obj)
 {
 	MStatus status;
 	MFnPlugin plugin(obj);
-	status = plugin.deregisterCommand("WoolXMain");
+	status = plugin.deregisterCommand("wx3d");
 	if (!status)
 		status.perror("deregisterCommand failed");
 	return status;
