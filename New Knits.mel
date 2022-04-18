@@ -1,0 +1,344 @@
+
+
+
+circle -c 0 0 0 -nr 0 1 0 -sw 360 -r 0.3 -d 3 -ut 0 -tol 0.01 -s 8 -ch 1;
+
+//Start Knit Pattern 2 ---------------------------------------------------------------------------------------------------------------------------------------------
+curve -d 3 -p 5.97468 0 -6.034179 -p 5.941943 0 -6.018466 -p 5.857332 0 -5.956811 -p 5.778742 0 -5.829299 -p 5.66634 0 -5.694029 -p 5.567247 0 -5.554916 
+-p 5.494259 0 -5.387413 -p 5.45707 0 -5.207763 -p 5.473923 0 -5.023216 -p 5.496148 0 -4.848116 -p 5.574096 0 -4.730004 -p 5.657564 0 -4.631309 -p 5.758937 0 -4.513397 
+-p 5.909939 0 -4.414122 -p 6.057712 0 -4.316288 -p 6.259958 0 -4.124995 -p 6.311766 0 -3.745809 -p 6.259485 0 -3.391892 -p 6.124295 0 -3.196185 -p 6.015073 0 -3.104667 
+-p 5.915827 0 -3.0028 -p 5.803467 0 -2.879206 -p 5.718074 0 -2.697684 -p 5.609664 0 -2.502926 -p 5.522313 0 -2.296712 -p 5.483937 0 -2.100326 -p 5.498497 0 -1.929988 
+-p 5.519246 0 -1.778079 -p 5.527752 0 -1.623539 -p 5.58984 0 -1.433009 -p 5.702348 0 -1.220168 -p 5.855456 0 -0.989236 -p 6.07581 0 -0.767882 -p 6.285162 0 -0.425717 
+-p 6.382548 0 -0.0800951 -p 6.397223 0 0.199994 -p 6.392052 0 0.364885 -p 6.320637 0 0.5374 -p 6.254675 0 0.713802 -p 6.13802 0 0.873692 -p 5.967306 0 0.995744 
+-p 5.840702 0 1.183826 -p 5.689459 0 1.30327 -p 5.621701 0 1.471157 -p 5.520514 0 1.611254 -p 5.472445 0 1.816544 -p 5.400383 0 2.055316 -p 5.406849 0 2.323511 
+-p 5.390674 0 2.57296 -p 5.503547 0 2.74665 -p 5.559135 0 2.931413 -p 5.724196 0 3.121578 -p 5.915612 0 3.279236 -p 6.10707 0 3.457555 -p 6.282769 0 3.584925 
+-p 6.376907 0 3.782395 -p 6.484863 0 3.983334 -p 6.490514 0 4.281732 -p 6.52939 0 4.600845 -p 6.470461 0 4.91875 -p 6.413535 0 5.202578 -p 6.323834 0 5.424275 
+-p 6.217969 0 5.58413 -p 6.03967 0 5.676126 -p 5.926903 0 5.779063 -p 5.901225 0 5.864532 -k 0 -k 0 -k 0 -k 0.500703 -k 1.410531 -k 2.039494 -k 2.929643 
+-k 3.753293 -k 4.543797 -k 5.426165 -k 6.30463 -k 6.928878 -k 7.339711 -k 8.093129 -k 9.058111 -k 9.810684 -k 10.545635 -k 12.821564 -k 14.660594 -k 15.384357 
+-k 16.040592 -k 16.619413 -k 17.347374 -k 18.327566 -k 19.362155 -k 20.426122 -k 21.404502 -k 22.08203 -k 22.771953 -k 23.522429 -k 24.204193 -k 25.513758 
+-k 26.834824 -k 28.00691 -k 29.804255 -k 32.309619 -k 32.844218 -k 33.67803 -k 34.551817 -k 35.393841 -k 36.273506 -k 37.231698 -k 38.250482 -k 39.378665 
+-k 39.793917 -k 40.722266 -k 41.730173 -k 42.6685 -k 44.14029 -k 45.449598 -k 45.933195 -k 46.950924 -k 48.077246 -k 49.330368 -k 50.374737 -k 51.705862 
+-k 52.218576 -k 53.370068 -k 54.805804 -k 56.251475 -k 57.794207 -k 59.22391 -k 60.232383 -k 61.097831 -k 61.769444 -k 63 -k 63 -k 63 - name curve1;
+
+select - r nurbsCircle1 curve1;
+extrude - ch true - rn false - po 1 - et 2 - ucp 1 - fpt 1 - upn 1 - rotation 0 - scale 1 - rsp 1 nurbsCircle1 curve1;
+
+
+select -cl  ;
+select -r extrudedSurface1 ;
+duplicate -smartTransform;
+move -r -11.794152 0 0 ;
+
+
+curve -d 3 -p -6.95974 0 5.044734 -p -4.96008 0 5.002806 -p -2.970567 0 4.981218 -p 0.0507622 0 5.037555 -p 3.003234 0 4.992465 -p 4.967463 0 4.980624 
+-p 6.898739 0 4.983733 -k 0 -k 0 -k 0 -k 1.012427 -k 2.012408 -k 3.057653 -k 4 -k 4 -k 4 - name curve2;
+select - r nurbsCircle1 curve2;
+extrude - ch true - rn false - po 1 - et 2 - ucp 1 - fpt 1 - upn 1 - rotation 0 - scale 1 - rsp 1 nurbsCircle1 curve2;
+select -cl  ;
+select -r extrudedSurface3 ;
+duplicate -smartTransform;
+move -r 0 0 -2.11908 ;
+
+duplicate -smartTransform;
+duplicate -smartTransform;
+duplicate -smartTransform;
+duplicate -smartTransform;
+
+select -cl  ;
+select -r extrudedSurface8 ;
+move -r 0 0 0.478713 ;
+
+select -cl  ;
+select -r extrudedSurface3 ;
+move -r 0 0 -0.492897 ;
+
+select -cl  ;
+
+select -add nurbsCircle1 curve1 curve2;
+doDelete;
+
+
+select -cl;
+select -r extrudedSurface1 extrudedSurface2 extrudedSurface3 
+extrudedSurface4 extrudedSurface5 extrudedSurface6 extrudedSurface7 extrudedSurface8;
+
+polyUnite -ch 1 -mergeUVSets 1 -centerPivot -name extrudedSurface1 extrudedSurface1 extrudedSurface2 extrudedSurface3
+extrudedSurface4 extrudedSurface5 extrudedSurface6 extrudedSurface7 extrudedSurface8;
+DeleteAllHistory;
+
+rename extrudedSurface9 SquareKnit;
+
+
+select -r SquareKnit ;
+scale -r 0.0749998 0.0749998 0.0749998 ;
+move -r 0 0 0.178964 ;
+move -r 0.0449643 0 0 ;
+scale -r 1 1 1.122459 ;
+
+makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+
+DeleteAllHistory;
+
+
+
+//End Knit Pattern 2 -----------------------------------------------------------------------------------------------------------------------------------------------
+
+//Start Knit Pattern 3 ---------------------------------------------------------------------------------------------------------------------------------------------
+
+
+circle -c 0 0 0 -nr 0 1 0 -sw 360 -r 0.3 -d 3 -ut 0 -tol 0.01 -s 8 -ch 1;
+
+curve -d 3 -p -5.505725 -0.370179 5.596172 -p -4.567986 0.322384 5.477482 -p -2.916852 0.667699 5.405872 -p -1.336441 0.347409 5.454603 
+-p -0.502111 -0.285755 5.55199 -k 0 -k 0 -k 0 -k 2 -k 4 -k 4 -k 4;
+
+select - r nurbsCircle1 curve1;
+extrude - ch true - rn false - po 1 - et 2 - ucp 1 - fpt 1 - upn 1 - rotation 0 - scale 1 - rsp 1 nurbsCircle1 curve1;
+
+select -cl  ;
+select -r extrudedSurface1 ;
+duplicate -smartTransform;
+
+move -r 0 0 -0.903527 ;
+
+duplicate -smartTransform;
+duplicate -smartTransform;
+duplicate -smartTransform;
+duplicate -smartTransform;
+duplicate -smartTransform;
+
+select -tgl extrudedSurface6 ;
+select -tgl extrudedSurface5 ;
+select -tgl extrudedSurface4 ;
+select -tgl extrudedSurface3 ;
+select -tgl extrudedSurface2 ;
+select -tgl extrudedSurface1 ;
+
+duplicate -smartTransform;
+move -r 6.01636 0 0 ;
+move -r 0 0 -5.827272 ;
+select -cl  ;
+
+select -r extrudedSurface1 ;
+duplicate -smartTransform;
+setAttr "extrudedSurface15.rotateY" 90;
+
+select -r extrudedSurface15 ;
+duplicate -smartTransform;
+move -r -0.845129 0 0 ;
+duplicate -smartTransform;
+duplicate -smartTransform;
+duplicate -smartTransform;
+duplicate -smartTransform;
+duplicate -smartTransform;
+duplicate -smartTransform;
+
+select -r extrudedSurface22 ;
+select -tgl extrudedSurface21 ;
+select -tgl extrudedSurface20 ;
+select -tgl extrudedSurface19 ;
+select -tgl extrudedSurface18 ;
+select -tgl extrudedSurface17 ;
+select -tgl extrudedSurface16 ;
+select -tgl extrudedSurface15 ;
+
+duplicate -smartTransform;
+move -r 0 0 -5.593743 ;
+move -r -5.10844 0 0 ;
+move -r 0 0 -0.236361 ;
+select -cl  ;
+
+
+select -add nurbsCircle1 curve1;
+doDelete;
+
+for($i = 1; $i < 31; ++$i)
+{
+    select -r ("extrudedSurface" + $i);
+}
+
+string $unite_cmd = "polyUnite -ch 1 -mergeUVSets 1 -centerPivot -name ";
+
+for($i = 1; $i < 31; ++$i)
+{
+    $unite_cmd += ("extrudedSurface" + $i + " ");
+}
+
+$unite_cmd += ";";
+
+eval($unite_cmd);
+
+DeleteAllHistory;
+
+select -cl;
+select -r extrudedSurface1 extrudedSurface31;
+
+polyUnite;
+DeleteAllHistory;  
+
+rename polySurface1 DenseKnit;
+select -cl;
+select -r DenseKnit ;
+scale -r 0.0829966 0.0829966 0.0829966 ;
+scale -r 1.044943 1.044943 1.044943 ;
+
+makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+
+DeleteAllHistory;
+
+//End Knit Pattern 3 -----------------------------------------------------------------------------------------------------------------------------------------------
+
+
+//Start Knit Pattern 4 ---------------------------------------------------------------------------------------------------------------------------------------------
+
+circle -c 0 0 0 -nr 0 1 0 -sw 360 -r 0.3 -d 3 -ut 0 -tol 0.01 -s 8 -ch 1;
+
+curve -d 3 -p 5.990069 0 6.029118 -p 4.904886 0 5.362787 -p 2.73452 0 4.030124 
+-p 0.904702 0 2.061776 -p -0.535478 0 -0.0399568 -p 1.045695 0 -2.009434 
+-p 2.675957 0 -3.963057 -p 4.900013 0 -5.305114 -p 6.012041 0 -5.976143 
+-k 0 -k 0 -k 0 -k 1 -k 2 -k 3 -k 4 -k 5 -k 6 -k 6 -k 6 ;
+
+
+select - r nurbsCircle1 curve1;
+extrude - ch true - rn false - po 1 - et 2 - ucp 1 - fpt 1 - upn 1 - rotation 0 - scale 1 - rsp 1 nurbsCircle1 curve1;
+
+select -r extrudedSurface1 ;
+duplicate -smartTransform;
+
+rotate -r -os -fo 0 -90 0 ;
+
+duplicate -smartTransform;
+duplicate -smartTransform;
+
+select -cl  ;
+
+curve -d 3 -p 5.89453 0 5.75936 -p 4.059341 0.845961 3.780094 
+-p 2.011097 0.831319 1.938907 -p -0.193232 -0.0344521 -0.243308 
+-k 0 -k 0 -k 0 -k 1 -k 1 -k 1;
+
+extrude - ch true - rn false - po 1 - et 2 - ucp 1 - fpt 1 - upn 1 - rotation 0 - scale 1 - rsp 1 nurbsCircle1 curve2;
+
+select -r extrudedSurface5 ;
+duplicate -smartTransform;
+setAttr "extrudedSurface6.rotateY" 90;
+duplicate -smartTransform;
+duplicate -smartTransform;
+
+curve -d 3 -p -5.232997 0 5.397141 -p -1.785734 0 5.353107 -p 1.661529 0 5.309072 -p 5.108792 0 5.265038 
+-k 0 -k 0 -k 0 -k 1 -k 1 -k 1 ;
+extrude - ch true - rn false - po 1 - et 2 - ucp 1 - fpt 1 - upn 1 - rotation 0 - scale 1 - rsp 1 nurbsCircle1 curve3;
+
+select -cl  ;
+select -r extrudedSurface9 ;
+duplicate -smartTransform;
+move -r 0 0 -10.611289 ;
+
+select -cl  ;
+select -r extrudedSurface9 ;
+duplicate -smartTransform;
+setAttr "extrudedSurface11.rotateY" 90;
+select -cl  ;
+
+select -cl  ;
+select -r extrudedSurface11 ;
+duplicate -smartTransform;
+move -r -10.618115 0 0 ;
+select -cl;
+
+select -add nurbsCircle1 curve1 curve2 curve3;
+doDelete;
+
+for($i = 1; $i < 13; ++$i)
+{
+    select -r ("extrudedSurface" + $i);
+}
+
+string $unite_cmd = "polyUnite -ch 1 -mergeUVSets 1 -centerPivot -name ";
+
+for($i = 1; $i < 13; ++$i)
+{
+    $unite_cmd += ("extrudedSurface" + $i + " ");
+}
+
+$unite_cmd += ";";
+
+eval($unite_cmd);
+
+DeleteAllHistory;
+
+select -cl;
+select -r extrudedSurface1 extrudedSurface13;
+
+polyUnite;
+DeleteAllHistory;  
+
+rename polySurface1 StarKnit;
+select -cl;
+select -r StarKnit ;
+
+scale -r 0.0789497 0.0789497 0.0789497 ;
+scale -r 1.032586 1.032586 1.032586 ;
+
+makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+
+DeleteAllHistory;
+
+
+//End Knit Pattern 4 ---------------------------------------------------------------------------------------------------------------------------------------------
+
+
+//Start Knit Pattern 5 ---------------------------------------------------------------------------------------------------------------------------------------------
+
+circle -c 0 0 0 -nr 0 1 0 -sw 360 -r 0.3 -d 3 -ut 0 -tol 0.01 -s 8 -ch 1;
+
+circle -c 0 0 0 -nr 0 1 0 -sw 360 -r 1 -d 3 -ut 0 -tol 0.01 -s 8 -ch 1; objectMoveCommand;
+setAttr "nurbsCircle2.scaleX" 3;
+setAttr "nurbsCircle2.scaleZ" 3;
+select -cl  ;
+
+select - r nurbsCircle1 nurbsCircle2;
+extrude - ch true - rn false - po 1 - et 2 - ucp 1 - fpt 1 - upn 1 - rotation 0 - scale 1 - rsp 1 nurbsCircle1 nurbsCircle2;
+
+curve -d 3 -p -6.003128 0 -0.00539365 -p -3.900781 0.542619 -0.0589456 -p -1.898322 0.539867 -0.0553664 -p 0.00539365 0 0.0161809 -k 0 -k 0 -k 0 -k 1 -k 1 -k 1;
+extrude - ch true - rn false - po 1 - et 2 - ucp 1 - fpt 1 - upn 1 - rotation 0 - scale 1 - rsp 1 nurbsCircle1 curve1;
+
+select -cl  ;
+select -r extrudedSurface2 ;
+duplicate -smartTransform;
+setAttr "extrudedSurface3.rotateY" 180;
+
+select -cl  ;
+select -r extrudedSurface2 ;
+duplicate -smartTransform;
+setAttr "extrudedSurface4.rotateY" 90;
+
+select -cl  ;
+select -r extrudedSurface2 ;
+duplicate -smartTransform;
+setAttr "extrudedSurface5.rotateY" -90;
+select -cl;
+
+select -add nurbsCircle1 nurbsCircle2 curve1;
+doDelete;
+
+select -cl;
+select -r extrudedSurface1 extrudedSurface2 extrudedSurface3 
+extrudedSurface4 extrudedSurface5;
+
+polyUnite -ch 1 -mergeUVSets 1 -centerPivot -name extrudedSurface1 extrudedSurface1 extrudedSurface2 extrudedSurface3
+extrudedSurface4 extrudedSurface5;
+DeleteAllHistory;
+
+rename extrudedSurface6 CircleKnit;
+
+select -cl;
+select -r CircleKnit ;
+scale -r 0.101818 0.101818 0.101818 ;
+move -r 0 -0.225845 0 ;
+scale -r 0.836385 0.836385 0.836385 ;
+
+makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+
+DeleteAllHistory;
+
+
+//End Knit Pattern 5 ---------------------------------------------------------------------------------------------------------------------------------------------
