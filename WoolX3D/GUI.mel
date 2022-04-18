@@ -165,17 +165,61 @@ global proc selectCSVFileDialog()
 
     global string $csvPath;
     global string $csv;
-    global string $csvScrollField;  
+    global string $csvScrollField;
+
 
     $csvPath = `fileDialog -directoryMask "*.csv"`;  
     $file = `fopen $csvPath "r"`;
     $csv = `fread $file $csv`;
+
+
     
     scrollField -edit -text $csv $csvScrollField;
     global string $message;
     $message = "The knitting instructions " + $csvPath + " got loaded succesfully. \nHere's what they look like: \n";
     scrollField -edit -insertText $message $csvScrollField;
     fclose $file;
+
+
+
+	global string $data[];
+	global int $sizeX;
+	global int $sizeY;
+	$fileId = `fopen $csvPath "r"`;
+	string $lineOfText = `fgetline $fileId`;
+
+	string $separated[];
+	int $counter = 0;
+    $sizeX = 0;
+
+	while ( size ( $lineOfText ) > 0 ) { 
+	  string $tempData[]; 
+      tokenize $lineOfText "," $tempData;
+      int $sizeofData = size($data);
+      $sizeX = size($tempData);
+      for( $i=0; $i<$sizeX; ++$i )
+	  {
+	  	$data[$sizeofData+ $i] = $tempData[$i];
+	  }
+      $lineOfText = `fgetline $fileId`;
+      $counter += 1;
+  	}
+  	$sizeY = $counter;
+  	// print "sizeX sizeY";
+    // print($sizeX);
+      // print($sizeY);
+      // print("\n");
+  	//print($counter);
+
+  	//$separated[0] = "s";
+  	//print(size($separated));
+
+  	//print(size($data));
+
+	fclose $fileId; 
+
+
+
 
 }
 
@@ -453,20 +497,57 @@ proc vector getFaceCenter( string $pFaceName ) {
     }
     
        
-    proc moveAlign( string $pObjectName, vector $pNormal, vector $pPosition, vector $pScale ) {
+ proc moveAlign( string $pObjectName, vector $pNormal, vector $pPosition, vector $pScale, int $currIdxX, int $currIdxY, int $sizeX, int $sizeY ) {
         
-        vector $tangent1 = unit( cross( $pNormal, << 0, 1, 0 >> ) );
+        vector $tangent1 = unit( cross( << 0, 1, 0 >> , $pNormal) );
         if( mag( $tangent1 ) == 0 ) {
             $tangent1 = << 1, 0, 0 >>;
         }
-        
+		
         vector $tangent2 = unit( cross( $pNormal, $tangent1 ) );
-        
+		
+		float $mat[] = {$tangent1.x,$tangent1.y,$tangent1.z,0.0,$pNormal.x,$pNormal.y,$pNormal.z,0.0,$tangent2.x,$tangent2.y,$tangent2.z,0.0 ,0.0 ,0.0 ,0.0 ,1.0};
+		
+		// Place Extra Geomtry
+		
+		// print "pold";
+		// print ($pPosition);
+		float $alignedOffsetArr[] = pointMatrixMult({$pScale.x/2.0, 0.0, $pScale.y/2.0}, $mat) ;
+		vector $alignedOffsetVec = <<$alignedOffsetArr[0], $alignedOffsetArr[1], $alignedOffsetArr[2]>>;
+		
+		vector $alignedPos = $pPosition - $alignedOffsetVec;
+		
+		// print "alignedPos";
+		// print ($alignedPos);
+		
+		
+		float $offsetX = $pScale.x/$sizeX;
+		float $offsetY = $pScale.y/$sizeY;
+		
+	// print ("pScale");
+		// print ($pScale);
+		// print ("sizeY");
+		// print ($sizeY);
+		float $dx = $offsetX/2.0;
+		float $dy = $offsetY/2.0;
+		float $finalOffsetArr[] = {($dx + $offsetX * $currIdxX), 0.0,($dy + $offsetY * $currIdxY)};
+		// print ("finalOffsetArr");
+		// print ($finalOffsetArr);
+		
+		vector $alignedOffsetVec2 = pointMatrixMult($finalOffsetArr, $mat) ;
+		vector $newPos = $alignedPos + $alignedOffsetVec2;
+		// print ("newPos");
+		// print ($newPos);		
+		// print ("\n");
+	
+       
+	// print ("offsetY");
+		// print ($offsetY);
         matrix $m[4][4] = <<
             ($tangent2.x), ($tangent2.y), ($tangent2.z), 0.0;
             ($pNormal.x),  ($pNormal.y),  ($pNormal.z),  0.0;
             ($tangent1.x), ($tangent1.y), ($tangent1.z), 0.0;
-            ($pPosition.x), ($pPosition.y), ($pPosition.z), 1.0 >>;
+            ($newPos.x), ($newPos.y), ($newPos.z), 1.0 >>;
         
         xform -ws -m
             ($m[0][0]) ($m[0][1]) ($m[0][2]) ($m[0][3])
@@ -476,9 +557,11 @@ proc vector getFaceCenter( string $pFaceName ) {
 			
 	select -cl;
 	select $pObjectName;
-	float $a = $pScale.x;
-	float $b = $pScale.y;
-	float $c = $pScale.z;
+	float $a = $offsetX;
+	float $b = $offsetX;
+	float $c = $offsetY;
+		// print ("offsetY");
+		// print ($offsetY);
 	scale $a $b $c;
 	
 	select -cl;
@@ -546,13 +629,19 @@ setAttr "Knit.scaleZ" 0.108;
 setAttr "Knit.translateY" 0.047;
 setAttr "Knit.translateZ" -3.765;
 
+//Move Pivot
+select -r Knit ;
+move -rpr -xz 0 0 ;
+SnapToGridRelease; dR_enterForSnap;
+
+move -rpr -y 0 ;
+SnapToGridRelease; dR_enterForSnap;
+
 //Freeze Transformation
 makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
 
 //Delete History Again
 DeleteAllHistory;
-
- 
 }
 
 global proc GenerateFabric()
@@ -600,16 +689,22 @@ global proc GenerateFabric()
         string $face;
         for( $face in $faceNames ) {
             
-            string $newInstance[] = `instance $objectToInstance`;
-            
-            vector $position = getFaceCenter( $face );
-            // move -a -ws ($position.x) ($position.y) ($position.z) $newInstance;
-            
-            vector $normal = getFaceNormal( $face );
-            
-            vector $currScale =  getFaceScale ($face, $normal);
-            //print($currScale +"\n");
-            moveAlign( $newInstance[0], $normal, $position, $currScale );
+            for( $j=0; $j<3; ++$j )
+			{
+				for( $i=0; $i<3; ++$i )
+				{
+                    string $newInstance[] = `duplicate $objectToInstance`;
+                    
+                    vector $position = getFaceCenter( $face );
+                    // move -a -ws ($position.x) ($position.y) ($position.z) $newInstance;
+                    
+                    vector $normal = getFaceNormal( $face );
+                    
+                    vector $currScale =  getFaceScale ($face, $normal);
+                    moveAlign( $newInstance[0], $normal, $position, $currScale, $i, $j, 3, 3);
+				}
+                
+			}
         }
         
     } else {
