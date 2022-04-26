@@ -1,5 +1,6 @@
 //internalVar -usd;
 //Place knits in internalVar -usd; /knits
+//Place images in 
 
 //circle -c 0 0 0 -nr 0 1 0 -sw 360 -r 0.3 -d 3 -ut 0 -tol 0.01 -s 8 -ch 1;
 //curve -d 1 -p 0 0 0 -p 0 10 0 -p 10 10 0  -k 0 -k 1 -k 2 -name curve1;
@@ -63,7 +64,7 @@ global proc DisplayWoolXDialog()
     columnLayout -adjustableColumn true;          
     string $formBrowse = `formLayout -numberOfDivisions 2`;
         string $bBrowse = `button -command selectPremadeCSV -label "Browse"`;
-        string $tBrowse = `text -font boldLabelFont -label "Or choose from our example knitting settings: "`;
+        string $tBrowse = `text -font boldLabelFont -label "Or choose from our basic knitting settings: "`;
         formLayout -edit
             -attachForm $tBrowse "left" 0
             -attachForm $bBrowse "right" 0
@@ -277,24 +278,99 @@ global proc GetSelection(string $v)
 
 }
 
+global proc GetSelection2(string $v)
+{
+	$s = `textScrollList -q -selectItem $v`;
+	
+	$csvLoadPath = "";
+
+	global string $csvPath;
+    global string $csv;
+    global string $csvScrollField;  
+
+	
+	if($s[0] == "Example Pattern 1")
+	{
+	    $csvLoadPath = `internalVar -usd` + "knits/sample1.csv";
+	    //print($csvLoadPath);
+	}
+	else if($s[0] == "Example Pattern 2")
+	{
+	    $csvLoadPath = `internalVar -usd` + "knits/sample2.csv";
+	    //print($csvLoadPath);
+	}
+	else if($s[0] == "Example Pattern 3")
+	{
+	    $csvLoadPath = `internalVar -usd` + "knits/sample3.csv";
+	  
+	    //print($csvLoadPath);
+	}
+	else if($s[0] == "Example Pattern 4")
+	{
+	    $csvLoadPath = `internalVar -usd` + "knits/sample4.csv";
+	  
+	    //print($csvLoadPath);
+	} 
+	else if($s[0] == "Example Pattern 5")
+	{
+	    $csvLoadPath = `internalVar -usd` + "knits/sample5.csv";
+	  
+	    //print($csvLoadPath);
+	}  
+
+
+	$file = `fopen $csvLoadPath "r"`;
+    $csv = `fread $file $csv`;
+    //print($file);
+
+    scrollField -edit -text $csv $csvScrollField;
+    global string $message;
+    $message = "The knitting instructions " + $csvPath + " got loaded succesfully. \nHere's what they look like: \n";
+    scrollField -edit -insertText $message $csvScrollField;
+    fclose $file;
+
+}
+
 
 global proc selectPremadeCSV()
 {
 		
-
-	window;
-	paneLayout;
-
-	$ListName = `textScrollList PatternList`;
-	textScrollList -e -append "Example Pattern 1" -dcc ("GetSelection " + $ListName) PatternList ;
-	textScrollList -e -append "Example Pattern 2" -dcc ("GetSelection " + $ListName) PatternList ;
-	textScrollList -e -append "Example Pattern 3" -dcc ("GetSelection " + $ListName) PatternList ;
-	textScrollList -e -append "Example Pattern 4" -dcc ("GetSelection " + $ListName) PatternList ;
-	textScrollList -e -append "Example Pattern 5" -dcc ("GetSelection " + $ListName) PatternList ;
-
+	//window;
+	//paneLayout;
+	//image -w 2 -h 1 -i $imgpath -vis true;
+	//$ListName = `textScrollList PatternList`;
+	//textScrollList -e -append "Example Pattern 1" -dcc ("GetSelection " + $ListName) PatternList ;
+	//textScrollList -e -append "Example Pattern 2" -dcc ("GetSelection " + $ListName) PatternList ;
+	//textScrollList -e -append "Example Pattern 3" -dcc ("GetSelection " + $ListName) PatternList ;
+	//textScrollList -e -append "Example Pattern 4" -dcc ("GetSelection " + $ListName) PatternList ;
+	//textScrollList -e -append "Example Pattern 5" -dcc ("GetSelection " + $ListName) PatternList ;
 
 
-	showWindow;
+
+	//showWindow;
+
+	$imgpath = `internalVar -usd` + "img/test.jpg";
+
+	string $window = `window`;
+	columnLayout -adjustableColumn true;
+
+	iconTextButton -style "iconAndTextVertical"
+	-image1 $imgpath -label "Square Knit";
+
+	iconTextButton -style "iconAndTextVertical"
+	-image1 $imgpath -label "Dense Knit";
+
+	iconTextButton -style "iconAndTextVertical"
+	-image1 $imgpath -label "X Knit";
+
+	iconTextButton -style "iconAndTextVertical"
+	-image1 $imgpath -label "Circle Knit";
+
+	iconTextButton -style "iconAndTextVertical"
+	-image1 $imgpath -label "Loop Knit";
+
+
+	showWindow $window;
 
 
 }
