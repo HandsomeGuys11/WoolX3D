@@ -1,0 +1,928 @@
+//internalVar -usd;
+//Place knits in internalVar -usd; /knits
+
+//circle -c 0 0 0 -nr 0 1 0 -sw 360 -r 0.3 -d 3 -ut 0 -tol 0.01 -s 8 -ch 1;
+//curve -d 1 -p 0 0 0 -p 0 10 0 -p 10 10 0  -k 0 -k 1 -k 2 -name curve1;
+//select -r nurbsCircle1 curve1 ; 
+//extrude "nurbsCircle1" "curve1";
+
+//Modify -> Convert -> Nurbs to Poligons
+
+// ----------------------------------------------------------------------------------------------
+// SquareKnit -> S
+// DenseKnit -> D
+// XKnit -> X
+// CircleKnit -> O
+// LoopKnit -> V
+
+//Add premade CSV and Images for GUI in internalVar -usd
+
+// Things to change --------------------
+// Add premade csv file.
+// Add Thumbnails
+// selectPremadeCSV()
+// GetSelection() even class definition
+// ChooseMaterial()
+// Line 61 to 65
+// Line 127
+// Line 729 - 737
+// Line 797
+
+
+global proc createWoolXMenu()
+{
+    if (`menu -exists WoolXMenu`)
+        deleteUI WoolXMenu;
+
+    if (!`menu -exists WoolXMenu`)
+    {
+        global string $gMainWindow;
+        setParent $gMainWindow;
+
+        menu -label "WoolX3D" WoolXMenu;
+            //menuItem -label "Create Knitted Fabric" -command GenerateFabric;
+            //menuItem -divider true;
+            menuItem -label "Open WoolX3D Menu" -command DisplayWoolXDialog;
+            menuItem -divider true;
+			//menuItem -label "Create Row Stitch Mesh" -command createSelectedRandomNodeNetwork;
+			//menuItem -divider true;
+			
+    }
+}
+
+global proc deleteWoolXMenu()
+{
+	if (`window -exists myWindow`)
+        deleteUI myWindow;
+}
+
+global proc DisplayWoolXDialog()
+{
+     global string $csvScrollField;
+    global string $objScrollField;
+    global string $MaterialScrollField;
+
+   global string $MaterialColorField;
+    global float $values[];
+    $values[0] = 1;
+	$values[1] = 1;
+	$values[2] = 1;
+    
+    if (`window -exists myWindow`)
+        deleteUI myWindow;
+    if (!`window -exists myWindow`)
+        window -widthHeight 500 500 -title "WoolX3D Main Menu" myWindow;
+
+    frameLayout -label "WoolX3D - Solution for creating 3D knitted garments";
+    frameLayout -label " ";
+    
+    columnLayout -adjustableColumn true;          
+        string $formBrowse = `formLayout -numberOfDivisions 2`;
+            string $bBrowse = `button -command selectCSVFileDialog -label "Browse"`;
+            string $tBrowse = `text -font boldLabelFont -label "Select your source for knitting instructions: "`;
+            formLayout -edit
+                -attachForm $tBrowse "left" 0
+                -attachForm $bBrowse "right" 0
+                $formBrowse;
+            setParent ..;
+        setParent ..;
+
+    columnLayout -adjustableColumn true;          
+    string $formBrowse = `formLayout -numberOfDivisions 2`;
+        string $bBrowse = `button -command selectPremadeCSV -label "Browse"`;
+        string $tBrowse = `text -font boldLabelFont -label "Or choose from our example knitting settings: "`;
+        formLayout -edit
+            -attachForm $tBrowse "left" 0
+            -attachForm $bBrowse "right" 0
+            $formBrowse;
+        setParent ..;
+    $csvScrollField = `scrollField -wordWrap off -height 50 -text ""`;
+    setParent ..;
+
+    frameLayout -label "Now choose the desired input geometry from the scene.";
+    frameLayout -label " ";
+
+    columnLayout -adjustableColumn true;          
+    string $formBrowse = `formLayout -numberOfDivisions 2`;
+        string $bBrowse = `button -command addGeometryToList -label "Add"`;
+        string $tBrowse = `text -font boldLabelFont -label "Select geometry on the viewport and click add."`;
+        formLayout -edit
+            -attachForm $tBrowse "left" 0
+            -attachForm $bBrowse "right" 0
+            $formBrowse;
+        setParent ..;
+    $objScrollField = `scrollField -wordWrap off -height 50 -text ""`;
+    setParent ..;
+
+    frameLayout -label "Next, select a material preset for the knitted fabric.";
+    frameLayout -label " ";
+
+    columnLayout -adjustableColumn true;          
+    string $formBrowse = `formLayout -numberOfDivisions 2`;
+        string $bBrowse = `button -command chooseMaterial -label "Choose Material"`;
+        string $tBrowse = `text -font boldLabelFont -label "Choose a fabric material preset: "`;
+        formLayout -edit
+            -attachForm $tBrowse "left" 0
+            -attachForm $bBrowse "right" 0
+            $formBrowse;
+        setParent ..;
+    //$MaterialScrollField = `scrollField -wordWrap off -height 50 -text ""`;
+    $MaterialColorField = `text -label "" -bgc $values[0] $values[1] $values[2]`;
+	setParent ..;
+        
+    global string $radiusSlider;
+    
+    frameLayout -label "Knitting Stitch Parameters";
+    $radiusSlider = `floatSliderGrp -label "Diameter in mm: " -field true -minValue 0.1 -maxValue 1.0 -value 0.3 -ss 0.01`;
+    
+    string $formConfirm = `formLayout -numberOfDivisions 2`;
+    string $bCreate = `button -label "Create" -command GenerateFabric`;
+    string $bCancel = `button -label "Cancel" -command deleteWoolXMenu`;
+    formLayout -edit
+        -attachForm $bCreate "right" 0
+        -attachForm $bCancel "left" 0
+        $formConfirm;
+    
+    showWindow myWindow;
+}
+
+global proc chooseMaterial()
+{
+	global float $values[];
+	global string $MaterialColorField;
+
+	colorEditor;
+	if (`colorEditor -query -result`) {
+	    $values = `colorEditor -query -rgb`;
+	    print ("RGB = " + $values[0] + " " + $values[1] + " " + $values[2] + "\n");
+	    print($MaterialColorField);
+
+	    text -edit -bgc $values[0] $values[1] $values[2] $MaterialColorField;
+	}
+}
+
+
+global proc addGeometryToList()
+{
+
+	global string $csvPath;
+    global string $csv;
+    global string $objScrollField;  
+
+    string $selObjectos [ ] = `ls -sl`;
+	for ( $obj in $selObjectos){
+		  scrollField -e -text ($obj) $objScrollField;
+		  //Could use append too.
+	}
+
+	//string $poopy = `scrollField -q -text $objScrollField`;
+	//print($poopy);
+
+
+}
+
+
+global proc selectCSVFileDialog()
+{
+
+    global string $csvPath;
+    global string $csv;
+    global string $csvScrollField;
+
+
+    $csvPath = `fileDialog -directoryMask "*.csv"`;  
+    $file = `fopen $csvPath "r"`;
+    $csv = `fread $file $csv`;
+
+
+    
+    scrollField -edit -text $csv $csvScrollField;
+    global string $message;
+    $message = "The knitting instructions " + $csvPath + " got loaded succesfully. \nHere's what they look like: \n";
+    scrollField -edit -insertText $message $csvScrollField;
+    fclose $file;
+
+
+
+	global string $data[];
+	global int $sizeX;
+	global int $sizeY;
+	$fileId = `fopen $csvPath "r"`;
+	string $lineOfText = `fgetline $fileId`;
+
+	string $separated[];
+	int $counter = 0;
+    $sizeX = 0;
+
+	while ( size ( $lineOfText ) > 0 ) { 
+	  string $tempData[]; 
+      tokenize $lineOfText "," $tempData;
+      int $sizeofData = size($data);
+      $sizeX = size($tempData);
+      for( $i=0; $i<$sizeX; ++$i )
+	  {
+	  	$data[$sizeofData+ $i] = $tempData[$i];
+	  }
+      $lineOfText = `fgetline $fileId`;
+      $counter += 1;
+  	}
+  	$sizeY = $counter;
+  	// print "sizeX sizeY";
+    // print($sizeX);
+      // print($sizeY);
+      // print("\n");
+  	//print($counter);
+
+  	//$separated[0] = "s";
+  	//print(size($separated));
+
+  	//print(size($data));
+
+	fclose $fileId; 
+
+
+
+
+}
+
+
+global proc GetSelection(string $v)
+{
+	$csvLoadPath = "";
+
+	global string $csvPath;
+    global string $csv;
+    global string $csvScrollField;  
+	//print($v);
+
+	if($v == "SquareKnit")
+	{
+	    $csvLoadPath = `internalVar -usd` + "knits/sample1.csv";
+	}
+	else if($v == "DenseKnit")
+	{
+	    $csvLoadPath = `internalVar -usd` + "knits/sample2.csv";
+	}
+	else if($v == "XKnit")
+	{
+	    $csvLoadPath = `internalVar -usd` + "knits/sample3.csv";
+	}
+	else if($v == "CircleKnit")
+	{
+	    $csvLoadPath = `internalVar -usd` + "knits/sample4.csv";
+	}
+	else if($v == "LoopKnit")
+	{
+	    $csvLoadPath = `internalVar -usd` + "knits/sample5.csv";
+	}
+
+	$file = `fopen $csvLoadPath "r"`;
+    $csv = `fread $file $csv`;
+    //print($file);
+
+    scrollField -edit -text $csv $csvScrollField;
+    global string $message;
+    //$message = "The knitting instructions " + $csvPath + " got loaded succesfully. \nHere's what they look like: \n";
+    //scrollField -edit -insertText $message $csvScrollField;
+    fclose $file;
+
+    //To parse CSV File
+    global string $data[];
+	global int $sizeX;
+	global int $sizeY;
+	$fileId = `fopen $csvLoadPath "r"`;
+	string $lineOfText = `fgetline $fileId`;
+
+	string $separated[];
+	int $counter = 0;
+    $sizeX = 0;
+
+	while ( size ( $lineOfText ) > 0 ) { 
+	  string $tempData[]; 
+      tokenize $lineOfText "," $tempData;
+      int $sizeofData = size($data);
+      $sizeX = size($tempData);
+      for( $i=0; $i<$sizeX; ++$i )
+	  {
+	  	$data[$sizeofData+ $i] = $tempData[$i];
+	  }
+      $lineOfText = `fgetline $fileId`;
+      $counter += 1;
+  	}
+  	$sizeY = $counter;
+	fclose $fileId; 
+
+}
+
+
+global proc selectPremadeCSV()
+{
+		
+
+	//window;
+	//paneLayout;
+	//image -w 2 -h 1 -i $imgpath -vis true;
+	//$ListName = `textScrollList PatternList`;
+	//textScrollList -e -append "Example Pattern 1" -dcc ("GetSelection " + $ListName) PatternList ;
+	//textScrollList -e -append "Example Pattern 2" -dcc ("GetSelection " + $ListName) PatternList ;
+	//textScrollList -e -append "Example Pattern 3" -dcc ("GetSelection " + $ListName) PatternList ;
+	//textScrollList -e -append "Example Pattern 4" -dcc ("GetSelection " + $ListName) PatternList ;
+	//textScrollList -e -append "Example Pattern 5" -dcc ("GetSelection " + $ListName) PatternList ;
+
+
+
+	//showWindow;
+
+	$t1 = `internalVar -usd` + "img/t1.jpg";
+	$t2 = `internalVar -usd` + "img/t2.jpg";
+	$t3 = `internalVar -usd` + "img/t3.jpg";
+	$t4 = `internalVar -usd` + "img/t4.jpg";
+	$t5 = `internalVar -usd` + "img/t5.jpg";
+	$knit1 = "SquareKnit";
+	$knit2 = "DenseKnit";
+	$knit3 = "XKnit";
+	$knit4 = "CircleKnit";
+	$knit5 = "LoopKnit";
+
+	string $window = `window`;
+	columnLayout -adjustableColumn true;
+
+	iconTextButton -style "iconAndTextVertical"
+	-image1 $t1 -label "Square Knit" -dcc ("GetSelection " + $knit1);
+
+	iconTextButton -style "iconAndTextVertical"
+	-image1 $t2 -label "Dense Knit" -dcc ("GetSelection " + $knit2);
+
+	iconTextButton -style "iconAndTextVertical"
+	-image1 $t3 -label "X Knit" -dcc ("GetSelection " + $knit3);
+
+	iconTextButton -style "iconAndTextVertical"
+	-image1 $t4 -label "Circle Knit" -dcc ("GetSelection " + $knit4);
+
+	iconTextButton -style "iconAndTextVertical"
+	-image1 $t5 -label "Loop Knit" -dcc ("GetSelection " + $knit5);
+
+
+	showWindow $window;
+
+
+}
+
+
+
+
+global proc GenerateFabric_Deprecated()
+{
+// Cool green Loop ----------------------------
+circle -c 0 0 0 -nr 0 1 0 -sw 360 -r 0.3 -d 3 -ut 0 -tol 0.01 -s 8 -ch 1;
+curve -p -0.65 0 -0.990 -p -0.546 0 0.963 -p -2.990 0 4.474 -p 0.062 0 6.349 -p 3.348 0 4.296 -p 0.628 0 0.893 -p 0.65 0 -1.021 - name curve1;
+select - r nurbsCircle1 curve1;
+extrude - ch true - rn false - po 1 - et 2 - ucp 1 - fpt 1 - upn 1 - rotation 0 - scale 1 - rsp 1 nurbsCircle1 curve1;
+polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface1;
+polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface1;
+polyNormal -normalMode 0 -userNormalMode 0 -ch 1 extrudedSurface1;
+
+// Red Loop 1 ----------------------------
+
+curve -p -4.658 0 1.716 -p -2.662 0 1.655 -p -2.019 0.993 2.669 -p 0.137 -0.928 2.222 -p -0.352 -0.520 4.891 -p -0.770 0.692 3.477  -p -0.65 0 8.299 - name curve2;
+extrude - ch true - rn false - po 1 - et 2 - ucp 1 - fpt 1 - upn 1 - rotation 0 - scale 1 - rsp 1 nurbsCircle1 curve2;
+polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface2;
+polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface2;
+polyNormal -normalMode 0 -userNormalMode 0 -ch 1 extrudedSurface2;
+   
+// Red Loop 2 ----------------------------
+
+curve -p 4.658 0 1.716 -p 2.662 0 1.655 -p 2.019 0.993 2.669 -p -0.137 -0.928 2.222 -p 0.352 -0.520 4.891 -p 0.770 0.692 3.477  -p 0.65 0 8.299 - name curve3;
+extrude - ch true - rn false - po 1 - et 2 - ucp 1 - fpt 1 - upn 1 - rotation 0 - scale 1 - rsp 1 nurbsCircle1 curve3;
+polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface3;
+polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface3;
+polyNormal -normalMode 0 -userNormalMode 0 -ch 1 extrudedSurface3;
+
+// Select all created objects
+
+select -r nurbsCircle1 curve1 extrudedSurface1 curve2 extrudedSurface2 curve3 extrudedSurface3 ;
+
+// Group
+
+group -name Knit;
+
+//Reverse Normals
+polyNormal -normalMode 0 -userNormalMode 0 -ch 1 Knit;
+//print("Hellooooooooooooooooooooooooooooooooooooooooooooooooooooo");
+
+//Delete History
+DeleteHistory;
+
+//Setting the scale and centering
+setAttr "Knit.scaleX" 0.108;
+setAttr "Knit.scaleY" 0.108;
+setAttr "Knit.scaleZ" 0.108;
+setAttr "Knit.translateZ" -3.755;
+
+//Reset transformation
+select -r Knit ;
+makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+
+ 
+}
+proc vector getFaceCenter( string $pFaceName ) {
+        
+        vector $vertexPositions[] = `xform -q -ws -t $pFaceName`;
+        
+        vector $sum = << 0, 0, 0 >>;
+        
+        vector $v;
+        for( $v in $vertexPositions ) {
+            
+            $sum = $sum + $v;
+            
+        }
+        
+        vector $average;
+        
+        int $numVertices = size( $vertexPositions );
+        
+        // $average = $sum / $numVertices;
+        
+        if( catch( $average = $sum / $numVertices ) ) {
+            print( "Attempt to divide by 0: " + getLastError() );
+            $average = << 0, 0, 0 >>;
+        }
+        
+        return $average;
+        
+    }
+	
+
+		proc vector getFaceScale( string $pFaceName, vector $pFaceNormal ) {
+        //print($pFaceName);
+      vector $vertexPositions[] = `xform -q -ws -t $pFaceName`;
+        int $sizeVertices = size($vertexPositions);
+        vector $sum = << 0, 0, 0 >>;
+        int $idx =0;
+        vector $length_x[];
+		vector $length_y[];
+		
+		
+		
+		//Determine Alignment
+		float $x_axis[] = {1, 0, 0};
+		float $y_axis[] = {0, 1, 0};
+	   vector $vector1 = ($vertexPositions[1] - $vertexPositions[0]);
+	   float $vector1flt[] = {$vector1.x, $vector1.y, $vector1.z};
+
+	   float $dot_x_1 = dotProduct( $vector1flt, $x_axis, 1 );
+	   float $dot_y_1 = dotProduct( $vector1flt, $y_axis, 1 );
+
+
+	   float $dot_x = abs ($dot_x_1);
+	   float $dot_y = abs ($dot_y_1);
+
+		//X aligned
+		$alignment = 0;
+		//Y aligned
+	   if($dot_y> $dot_x)
+	   {
+			$alignment = 1;
+	   }
+		
+       int $vertIdx =0;
+        for( $i=0; $i<$sizeVertices-2; ++$i )
+		{
+			 // $length_x[$i] = ($vertexPositions[($vertIdx+1)%3] - $vertexPositions[($vertIdx)]);
+			 // $length_y[$i] = ($vertexPositions[($vertIdx+1)%3] - $vertexPositions[($vertIdx)]);
+			if($i%2 == 0)
+			{
+			//print("$vertexPositions[($vertIdx+1)%3]" + $vertexPositions[($vertIdx+1)%3] + "\n");
+			//print("$vertexPositions[($vertIdx)]" +$vertexPositions[($vertIdx)] + "\n");
+			$length_x[$i] = ($vertexPositions[($vertIdx+1)%3] - $vertexPositions[($vertIdx)]);
+			//print("$length_x[$i]" + $length_x[$i] + "\n");
+			
+			//print("$vertexPositions[($vertIdx+2)%3]" + $vertexPositions[($vertIdx+2)%3]+ " \n");
+			//print("$vertexPositions[($vertIdx)]" + $vertexPositions[($vertIdx)] + " \n");
+			$length_y[$i] = ($vertexPositions[($vertIdx+2)%3] - $vertexPositions[($vertIdx)]);
+			//print("$length_y[$i]" + $length_y[$i] + "\n");
+			}
+			else
+			{
+			//print("$vertexPositions[($vertIdx+1)%3]" + $vertexPositions[($vertIdx+1)%3] + "\n");
+			//print("$vertexPositions[($vertIdx)]" +$vertexPositions[($vertIdx)] + "\n");
+			$length_y[$i] = ($vertexPositions[($vertIdx+1)%3] - $vertexPositions[($vertIdx)]);
+			//print("$length_y[$i]" + $length_y[$i] + "\n");
+			
+			//print("$vertexPositions[($vertIdx+2)%3]" + $vertexPositions[($vertIdx+2)%3]+ " \n");
+			//print("$vertexPositions[($vertIdx)]" + $vertexPositions[($vertIdx)] + " \n");
+			$length_x[$i] = ($vertexPositions[($vertIdx+2)%3] - $vertexPositions[($vertIdx)]);
+			//print("$length_x[$i]" + $length_x[$i] + "\n");
+			}
+			
+			$vertIdx = ($vertIdx + 3) % $sizeVertices;
+		}
+		float $avgLen_x = 0;
+		float $avgLen_y = 0;
+		for( $i=0; $i<size($length_x); ++$i )
+		{
+		   $avgLen_x = $avgLen_x  + mag($length_x[$i]);
+		   $avgLen_y = $avgLen_y + mag($length_y[$i]);
+		}
+		$avgLen_x = $avgLen_x/ size($length_x);
+		$avgLen_y = $avgLen_y/ size($length_y);
+		vector $returnScale = <<1, 1, 1>>;
+		if($alignment ==0)
+		{
+			$returnScale = <<$avgLen_y, ($avgLen_x + $avgLen_y)/2 , $avgLen_x>>;
+		}
+		else
+		{
+		$returnScale = <<$avgLen_x, ($avgLen_x + $avgLen_y)/2 , $avgLen_y>>;
+		}
+		return $returnScale;
+    }
+    
+ 
+     proc vector getFaceNormal( string $pFaceName ) {
+        
+        string $polyInfoResult[] = `polyInfo -fn $pFaceName`;
+        string $stringToParse = $polyInfoResult[0];
+        
+        string $items[];
+        int $numTokens = `tokenize $stringToParse " " $items`;
+        
+        float $x = ($items[2]);
+        float $y = ($items[3]);
+        float $z = ($items[4]);
+        
+        vector $normal = << $x, $y, $z >>;
+        
+        string $parentShape[] = `listRelatives -parent $pFaceName`;
+        string $parentTransform[] = `listRelatives -parent $parentShape[0]`;
+        
+        float $transformMatrix[] = `xform -q -m -ws $parentTransform[0]`;
+        
+        vector $worldNormal = `pointMatrixMult $normal $transformMatrix`;
+        
+        vector $unitWorldNormal = unit( $worldNormal );
+        
+        return $unitWorldNormal;
+        
+    }
+    
+       
+ proc moveAlign( string $pObjectName, vector $pNormal, vector $pPosition, vector $pScale, int $currIdxX, int $currIdxY, int $sizeX, int $sizeY ) {
+        
+        vector $tangent1 = unit( cross( << 0, 1, 0 >> , $pNormal) );
+        if( mag( $tangent1 ) == 0 ) {
+            $tangent1 = << 1, 0, 0 >>;
+        }
+		
+        vector $tangent2 = unit( cross( $pNormal, $tangent1 ) );
+		
+		float $mat[] = {$tangent1.x,$tangent1.y,$tangent1.z,0.0,$pNormal.x,$pNormal.y,$pNormal.z,0.0,$tangent2.x,$tangent2.y,$tangent2.z,0.0 ,0.0 ,0.0 ,0.0 ,1.0};
+		
+		// Place Extra Geomtry
+		
+		// print "pold";
+		// print ($pPosition);
+		float $alignedOffsetArr[] = pointMatrixMult({$pScale.x/2.0, 0.0, $pScale.y/2.0}, $mat) ;
+		vector $alignedOffsetVec = <<$alignedOffsetArr[0], $alignedOffsetArr[1], $alignedOffsetArr[2]>>;
+		
+		vector $alignedPos = $pPosition - $alignedOffsetVec;
+		
+		// print "alignedPos";
+		// print ($alignedPos);
+		
+		
+		float $offsetX = $pScale.x/$sizeX;
+		float $offsetY = $pScale.y/$sizeY;
+		print ("offset");
+		print ($offsetX);
+		print ($offsetY);
+	// print ("pScale");
+		// print ($pScale);
+		// print ("sizeY");
+		// print ($sizeY);
+		float $dx = $offsetX/2.0;
+		float $dy = $offsetY/2.0;
+		float $finalOffsetArr[] = {($dx + $offsetX * $currIdxX), 0.0,($dy + $offsetY * $currIdxY)};
+		// print ("finalOffsetArr");
+		// print ($finalOffsetArr);
+		
+		vector $alignedOffsetVec2 = pointMatrixMult($finalOffsetArr, $mat) ;
+		vector $newPos = $alignedPos + $alignedOffsetVec2;
+		// print ("newPos");
+		// print ($newPos);		
+		// print ("\n");
+	
+    select -cl;
+	select $pObjectName;
+	float $a = $offsetX;
+	float $b = $offsetX;
+	float $c = $offsetY;
+		// print ("offsetY");
+		// print ($offsetY);
+	scale $a $b $c;
+	
+	select -cl;
+	
+	// print ("offsetY");
+		// print ($offsetY);
+        matrix $m[4][4] = <<
+            ($tangent2.x), ($tangent2.y), ($tangent2.z), 0.0;
+            ($pNormal.x),  ($pNormal.y),  ($pNormal.z),  0.0;
+            ($tangent1.x), ($tangent1.y), ($tangent1.z), 0.0;
+            ($newPos.x), ($newPos.y), ($newPos.z), 1.0 >>;
+			
+			float $abc[16]  =  `xform -q -ws -m $pObjectName`;
+			 matrix $mold[4][4] = <<
+            $abc[0], $abc[1], $abc[2], $abc[3];
+            $abc[4], $abc[5], $abc[6], $abc[7];
+            $abc[8], $abc[9], $abc[10], $abc[11];
+            $abc[12], $abc[13], $abc[14], $abc[15] >>;
+			$m = $mold * $m ;
+        
+        xform -ws -m
+            ($m[0][0]) ($m[0][1]) ($m[0][2]) ($m[0][3])
+            ($m[1][0]) ($m[1][1]) ($m[1][2]) ($m[1][3])
+            ($m[2][0]) ($m[2][1]) ($m[2][2]) ($m[2][3]) 
+            ($m[3][0]) ($m[3][1]) ($m[3][2]) ($m[3][3]) $pObjectName;
+			
+	select -cl;
+        
+    }
+
+global proc CreateFabric(float $radius)
+{
+// Cool green Loop ----------------------------
+circle -c 0 0 0 -nr 0 1 0 -sw 360 -r $radius -d 3 -ut 0 -tol 0.01 -s 8 -ch 1;
+curve -p -0.65 0 -0.990 -p -0.546 0 0.963 -p -2.990 0 4.474 -p 0.062 0 6.349 -p 3.348 0 4.296 -p 0.628 0 0.893 -p 0.65 0 -1.021 - name curve1;
+select - r nurbsCircle1 curve1;
+extrude - ch true - rn false - po 1 - et 2 - ucp 1 - fpt 1 - upn 1 - rotation 0 - scale 1 - rsp 1 nurbsCircle1 curve1;
+//polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface1;
+//polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface1;
+//polyNormal -normalMode 0 -userNormalMode 0 -ch 1 extrudedSurface1;
+
+//circle -c 0 0 0 -nr 0 1 0 -sw 360 -r 0.3 -d 3 -ut 0 -tol 0.01 -s 8 -ch 1;
+//curve -d 1 -p -0.65 0 -0.990 -p -0.546 0 0.963 -p -2.990 0 4.474 -p 0.062 0 6.349 -p 3.348 0 4.296 -p 0.628 0 0.893 -p 0.65 0 -1.021 -k 0 -k 1 -k 2 -k 3 -k 4 -k 5 -k 6 -name curve1;
+//select - r nurbsCircle1 curve1;
+//extrude - ucp 1 - fpt 1 - upn 1 nurbsCircle1 curve1;
+//nurbsToPoly -mnd 1  -ch 1 -f 3 -pt 1 -pc 200 -chr 0.9 -ft 0.01 -mel 0.001 -d 0.1 -ut 1 -un 3 -vt 1 -vn 3 -uch 0 -ucr 0 -cht 0.01 -es 0 -ntr 0 -mrt 0 -uss 1 "extrudedSurface1";
+//select -r extrudedSurface1;
+//delete;
+
+
+// Red Loop 1 ----------------------------
+
+curve -p -4.658 0 1.716 -p -2.662 0 1.655 -p -2.019 0.993 2.669 -p 0.137 -0.928 2.222 -p -0.352 -0.520 4.891 -p -0.770 0.692 3.477  -p -0.65 0 8.299 - name curve2;
+extrude - ch true - rn false - po 1 - et 2 - ucp 1 - fpt 1 - upn 1 - rotation 0 - scale 1 - rsp 1 nurbsCircle1 curve2;
+//polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface2;
+//polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface2;
+//polyNormal -normalMode 0 -userNormalMode 0 -ch 1 extrudedSurface2;
+   
+// Red Loop 2 ----------------------------
+
+curve -p 4.658 0 1.716 -p 2.662 0 1.655 -p 2.019 0.993 2.669 -p -0.137 -0.928 2.222 -p 0.352 -0.520 4.891 -p 0.770 0.692 3.477  -p 0.65 0 8.299 - name curve3;
+extrude - ch true - rn false - po 1 - et 2 - ucp 1 - fpt 1 - upn 1 - rotation 0 - scale 1 - rsp 1 nurbsCircle1 curve3;
+//polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface3;
+//polySmooth  -mth 0 -sdt 2 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 1 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 0 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 extrudedSurface3;
+//polyNormal -normalMode 0 -userNormalMode 0 -ch 1 extrudedSurface3;
+
+select -cl  ;
+
+select -add nurbsCircle1 curve1 curve2 curve3;
+doDelete;
+
+select -cl  ;
+
+select -add extrudedSurface1 extrudedSurface2 extrudedSurface3 ;
+
+polyUnite -ch 1 -mergeUVSets 1 -centerPivot -name extrudedSurface1 extrudedSurface1 extrudedSurface2 extrudedSurface3;
+DeleteAllHistory;
+
+//Reverse Normals
+polyNormal -normalMode 0 -userNormalMode 0 -ch 1 extrudedSurface4;
+
+rename extrudedSurface4 Knit;
+//Add Material
+select -cl  ;
+select -r Knit ;
+shadingNode -asShader lambert;
+sets -renderable true -noSurfaceShader true -empty -name lambert2SG;
+connectAttr -f lambert2.outColor lambert2SG.surfaceShader;
+assignCreatedShader "lambert" "" lambert2 "Knit";
+sets -e -forceElement lambert2SG;
+select -cl  ;
+
+//Setting the scale and centering
+setAttr "Knit.scaleX" 0.108;
+setAttr "Knit.scaleY" 0.108;
+setAttr "Knit.scaleZ" 0.108;
+setAttr "Knit.translateY" 0.047;
+setAttr "Knit.translateZ" -3.765;
+
+//Move Pivot
+select -r Knit ;
+move -rpr -xz 0 0 ;
+SnapToGridRelease; dR_enterForSnap;
+
+move -rpr -y 0 ;
+SnapToGridRelease; dR_enterForSnap;
+
+//Freeze Transformation
+makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+
+//Delete History Again
+DeleteAllHistory;
+
+
+
+polySmooth  -mth 0 -sdt 0 -ovb 1 -ofb 3 -ofc 0 -ost 0 -ocr 0 -dv 2 -bnr 1 -c 1 -kb 1 -ksb 1 -khe 1 -kt 1 -kmb 1 -suv 1 -peh 0 -sl 1 -dpe 1 -ps 0.1 -ro 1 -ch 1 Knit;
+
+
+//Delete History Again
+DeleteAllHistory;
+}
+
+global proc GenerateFabric()
+{
+
+	global string $objScrollField;
+	global string $radiusSlider;
+	
+	//CSV Stuff
+	global string $data[];
+	global int $sizeX;
+	global int $sizeY;
+
+	int $localSizeX = $sizeX;
+	int $localSizeY = $sizeY;
+	string $localData[] = $data;
+	string $selectedOBJ = `scrollField -q -text $objScrollField`;
+
+	float $radius = `floatSliderGrp -q -v $radiusSlider`;
+	
+	if($selectedOBJ == "")
+	{
+		//DO SOMETHING HERE WHERE OBJECT HAS NOT BEEN SELECTED
+	}
+	else
+	{
+		//string $obj[] = `ls -sl`;
+	int $faceCount[] = `polyEvaluate -f $selectedOBJ`;
+	int $singleCount = $faceCount[0]-1;
+	select -cl;
+
+	//Reverse normals sebastian fix
+	//polyNormal -normalMode 0 -userNormalMode 0 -ch 1 $selectedOBJ;
+	
+
+	CreateFabric $radius;
+	select -cl;
+    
+	setAttr "lambert2.color" -type double3 $values[0] $values[1] $values[2];
+	select -cl;
+	
+    //select Knit;
+    //select -tgl pSphere1.f[0:399];
+	
+	select Knit;
+	select -tgl ($selectedOBJ + ".f[0:" +$singleCount+ "]");
+    
+    string $selection[] = `ls -os -fl`;
+    
+    string $faceNames[] = `filterExpand -selectionMask 34 -expand true $selection`;
+    
+    string $objectToInstance = $selection[0];
+    
+    if( `objectType $objectToInstance` == "transform" ) {
+        
+        string $face;
+        for( $face in $faceNames ) {
+            
+            for( $j=0; $j<1; ++$j )
+			{
+				for( $i=0; $i<1; ++$i )
+				{
+                    string $newInstance[] = `duplicate $objectToInstance`;
+                    
+                    vector $position = getFaceCenter( $face );
+                    // move -a -ws ($position.x) ($position.y) ($position.z) $newInstance;
+                    
+                    vector $normal = getFaceNormal( $face );
+                    
+                    vector $currScale =  getFaceScale ($face, $normal);
+                    moveAlign( $newInstance[0], $normal, $position, $currScale, $i, $j, 1, 1);
+				}
+                
+			}
+        }
+        
+    } else {
+        
+        print "Please ensure the first object you select is a transform.";
+        
+    }
+    //Reverse normals sebastian fix
+    //polyNormal -normalMode 0 -userNormalMode 0 -ch 1 $selectedOBJ;
+
+ 
+    //Do this commands to scale down the original mesh a bit and delete the base knit sebastian fix
+    //select -cl;
+    //select $selectedOBJ;
+    //scale -r 0.993296 0.993296 0.993296 ;
+    //doDelete;
+    select -cl;
+    select Knit;
+    doDelete;
+
+    //Now select all knits and group them into KnittedMesh
+    select -cl;
+    select -all;
+    select -tgl $selectedOBJ;
+    Group;
+
+
+	}
+
+	
+	
+	
+
+
+
+}
+
+global proc createSelectedRandomNodeNetwork()
+{
+
+	instancer;
+	string  $sceneObjects[];
+	$sceneObjects = `ls -selection -tail 1`;
+	$selObject = $sceneObjects[0];
+    createNode randomNode;
+	connectAttr($selObject + ".matrix", "instancer1.inputHierarchy[0]");
+    connectAttr randomNode1.outPoints instancer1.inputPoints;  
+}
+
+global proc createlSystemInstanceNodeNetwork()
+{
+	polyCube; 
+	instancer;
+	createNode LSystemInstanceNode;
+	connectAttr pCube1.matrix instancer1.inputHierarchy[0];
+	connectAttr LSystemInstanceNode1.outputBranches instancer1.inputPoints;
+
+	polySphere; 
+	instancer;
+	connectAttr pSphere1.matrix instancer2.inputHierarchy[0];
+	connectAttr LSystemInstanceNode1.outputFlowers instancer2.inputPoints;
+}
+
+global proc createSelectedLSystemInstanceNodeNetwork()
+{
+
+}
+
+
+
+// string $selectedOBJ = "pCube1";
+// select -tgl ($selectedOBJ + ".f[0:6 ]");
+// string $selection[] = `ls -os -fl`;
+    
+ // string $faceNames[] = `filterExpand -selectionMask 34 -expand true $selection`;
+ 
+ // int $faceID =0;
+// select -cl;
+ // select ($selectedOBJ + ".f[" + $faceID +"]");
+ // print($faceNames);
+ // vector $vertexPositions[] = `xform -q -ws -t $faceNames[$faceID]`;
+ // print($vertexPositions);
+ 
+ 
+ 
+// string $selectedOBJ = "pSphere1";
+// int $faceCount[] = `polyEvaluate -f $selectedOBJ`;
+	// int $singleCount = $faceCount[0]-1;
+// select -tgl ($selectedOBJ + ".f[0:" +$singleCount+ "]");
+// string $selection[] = `ls -os -fl`;
+    
+ // string $faceNames[] = `filterExpand -selectionMask 34 -expand true $selection`;
+ 
+ // int $faceID =0;
+// select -cl;
+ // select ($selectedOBJ + ".f[" + $faceID +"]");
+ // polyListComponentConversion -ff -tv -in;
+
+
+
+
+// polyListComponentConversion -tv pSphere1.f[100];
+// string $ListVertex[] = `polyListComponentConversion -tv pSphere1.f[100]`;
+// select $ListVertex[0];
+// //select $ListVertex[1];
+// //select $ListVertex[3];
+
+// //float $arr1[] = `xform -q -ws -t $ListVertex[0]`;
+// //float $arr2[] = `xform -q -ws -t $ListVertex[1]`;
+
+// //print($arr1);
+// //print($arr2);
