@@ -370,15 +370,54 @@ global proc selectPremadeCSV()
 
 global proc Relax()
 {
-	string $ListVertex[] = `polyInfo -vertexToEdge pCube1.vtx[28]`;
-	print $ListVertex[0];
-	string $tempData[]; 
-	tokenize $ListVertex[0] ":" $tempData;
-	print $tempData;
-	//print $tempData[1][0];
-	string $finalData[]; 
-	tokenize $tempData[1] "      " $finalData;
-	print($finalData);
+int $currVtx = 28;
+string $vtxCmnd = "pCube1.vtx["+ $currVtx + "]";
+string $ListEdges[] = `polyInfo -vertexToEdge $vtxCmnd`;
+//print $ListEdges[0];
+string $tempEdges[]; 
+tokenize $ListEdges[0] ":" $tempEdges;
+//print $tempEdges;
+//print $tempData[1][0];
+string $finalEdgeData[]; 
+tokenize $tempEdges[1] "      " $finalEdgeData;
+//print($finalEdgeData[4]);
+
+//print(size($finalEdgeData));
+
+string $ListFinalVertices[]; 
+for( $i=0; $i<size($finalEdgeData)-1; ++$i )
+{
+    string $cmnd = "pCube1.e["+$finalEdgeData[$i]+"]";
+    //print $cmnd;
+    string $ListVertex[] = `polyInfo -edgeToVertex $cmnd`;
+    //print $ListVertex[0];
+    string $tempVertexData[]; 
+    tokenize $ListVertex[0] ":" $tempVertexData;
+    //print $tempVertexData;
+    //print $tempData[1][0];
+    string $finalVertexData[]; 
+    tokenize $tempVertexData[1] "      " $finalVertexData;
+    print($finalVertexData);
+    for( $j=0; $j<2; ++$j )
+    {
+        if($finalVertexData[$j] != string($currVtx))
+        {
+            $ListFinalVertices[$i] = $finalVertexData[$j];
+        }
+    }
+   
+}
+
+print($ListFinalVertices);
+
+for( $i=0; $i < size($ListFinalVertices); ++$i )
+{
+    string $newcmnd = "pCube1.vtx[" +$ListFinalVertices[$i]+ "]";
+    print $newcmnd;
+    polyMoveVertex -ty (2.0 + $i) $vtxCmnd;
+}
+
+
 }
 
 
