@@ -368,7 +368,7 @@ global proc selectPremadeCSV()
 
 }
 
-global proc Relax()
+global proc Relax(int $currVtx)
 {
 int $currVtx = 28;
 string $vtxCmnd = "pCube1.vtx["+ $currVtx + "]";
@@ -414,7 +414,7 @@ for( $i=0; $i < size($ListFinalVertices); ++$i )
 {
     string $newcmnd = "pCube1.vtx[" +$ListFinalVertices[$i]+ "]";
     print $newcmnd;
-    polyMoveVertex -ty (2.0 + $i) $vtxCmnd;
+    polyMoveVertex -ty (2.0 + $i) $newcmnd;
 }
 
 
