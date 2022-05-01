@@ -368,58 +368,70 @@ global proc selectPremadeCSV()
 
 }
 
-global proc Relax(int $currVtx)
+global proc Relax(int $currVtx, string $oBJName, vector $orignalVtxPos[])
 {
-int $currVtx = 28;
-string $vtxCmnd = "pCube1.vtx["+ $currVtx + "]";
-string $ListEdges[] = `polyInfo -vertexToEdge $vtxCmnd`;
-//print $ListEdges[0];
-string $tempEdges[]; 
-tokenize $ListEdges[0] ":" $tempEdges;
-//print $tempEdges;
-//print $tempData[1][0];
-string $finalEdgeData[]; 
-tokenize $tempEdges[1] "      " $finalEdgeData;
-//print($finalEdgeData[4]);
+	int $currVtx = 28;
+	string $vtxCmnd = $oBJName + ".vtx["+ $currVtx + "]";
+	string $ListEdges[] = `polyInfo -vertexToEdge $vtxCmnd`;
+	//print $ListEdges[0];
+	string $tempEdges[]; 
+	tokenize $ListEdges[0] ":" $tempEdges;
+	//print $tempEdges;
+	//print $tempData[1][0];
+	string $finalEdgeData[]; 
+	tokenize $tempEdges[1] "      " $finalEdgeData;
+	//print($finalEdgeData[4]);
 
-//print(size($finalEdgeData));
+	//print(size($finalEdgeData));
 
-string $ListFinalVertices[]; 
-for( $i=0; $i<size($finalEdgeData)-1; ++$i )
-{
-    string $cmnd = "pCube1.e["+$finalEdgeData[$i]+"]";
-    //print $cmnd;
-    string $ListVertex[] = `polyInfo -edgeToVertex $cmnd`;
-    //print $ListVertex[0];
-    string $tempVertexData[]; 
-    tokenize $ListVertex[0] ":" $tempVertexData;
-    //print $tempVertexData;
-    //print $tempData[1][0];
-    string $finalVertexData[]; 
-    tokenize $tempVertexData[1] "      " $finalVertexData;
-    print($finalVertexData);
-    for( $j=0; $j<2; ++$j )
-    {
-        if($finalVertexData[$j] != string($currVtx))
-        {
-            $ListFinalVertices[$i] = $finalVertexData[$j];
-        }
-    }
-   
+	string $ListFinalVertices[]; 
+	for( $i=0; $i<size($finalEdgeData)-1; ++$i )
+	{
+		string $cmnd = "pCube1.e["+$finalEdgeData[$i]+"]";
+		//print $cmnd;
+		string $ListVertex[] = `polyInfo -edgeToVertex $cmnd`;
+		//print $ListVertex[0];
+		string $tempVertexData[]; 
+		tokenize $ListVertex[0] ":" $tempVertexData;
+		//print $tempVertexData;
+		//print $tempData[1][0];
+		string $finalVertexData[]; 
+		tokenize $tempVertexData[1] "      " $finalVertexData;
+		print($finalVertexData);
+		for( $j=0; $j<2; ++$j )
+		{
+			if($finalVertexData[$j] != string($currVtx))
+			{
+				$ListFinalVertices[$i] = $finalVertexData[$j];
+			}
+		}
+	}
+	
+	//Apply Force here
+	
+	
 }
 
-print($ListFinalVertices);
-
-for( $i=0; $i < size($ListFinalVertices); ++$i )
+global proc DoRelaxation(string $oBJName )
 {
-    string $newcmnd = "pCube1.vtx[" +$ListFinalVertices[$i]+ "]";
-    print $newcmnd;
-    polyMoveVertex -ty (2.0 + $i) $newcmnd;
+	string $selectedOBJ = $oBJName;
+	int $vtxCount[] = `polyEvaluate -v $selectedOBJ`;
+	int $singleCount = $vtxCount[0];
+	print($vtxCount[0]);
+	vector $orignalVtxPos[];
+
+	for($i = 0; $i < $vtxCount[0]; ++$i)
+	{
+		string $vtxstr = $selectedOBJ + ".vtx[" + $i + "]";
+		float $pos[] = `pointPosition $vtxstr`;
+		$orignalVtxPos[$i] = <<$pos[0], $pos[1], $pos[2]>>;
+	}
+	
+	for($i = 0; $i < $vtxCount[0]; ++$i)
+	{
+		Relax($i, $selectedOBJ, $orignalVtxPos);
+	}
 }
-
-
-}
-
 
 
 global proc GenerateFabric_Deprecated()
