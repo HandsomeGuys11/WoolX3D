@@ -368,9 +368,9 @@ global proc selectPremadeCSV()
 
 }
 
-global proc Relax(int $currVtx, string $oBJName, vector $orignalVtxPos[])
+global proc Relax(int $a_currVtx, string $oBJName, vector $orignalVtxPos[])
 {
-	int $currVtx = 28;
+	int $currVtx = $a_currVtx;
 	string $vtxCmnd = $oBJName + ".vtx["+ $currVtx + "]";
 	string $ListEdges[] = `polyInfo -vertexToEdge $vtxCmnd`;
 	//print $ListEdges[0];
@@ -387,7 +387,7 @@ global proc Relax(int $currVtx, string $oBJName, vector $orignalVtxPos[])
 	string $ListFinalVertices[]; 
 	for( $i=0; $i<size($finalEdgeData)-1; ++$i )
 	{
-		string $cmnd = "pCube1.e["+$finalEdgeData[$i]+"]";
+		string $cmnd = $oBJName +".e["+$finalEdgeData[$i]+"]";
 		//print $cmnd;
 		string $ListVertex[] = `polyInfo -edgeToVertex $cmnd`;
 		//print $ListVertex[0];
@@ -397,7 +397,7 @@ global proc Relax(int $currVtx, string $oBJName, vector $orignalVtxPos[])
 		//print $tempData[1][0];
 		string $finalVertexData[]; 
 		tokenize $tempVertexData[1] "      " $finalVertexData;
-		print($finalVertexData);
+		//print($finalVertexData);
 		for( $j=0; $j<2; ++$j )
 		{
 			if($finalVertexData[$j] != string($currVtx))
@@ -407,17 +407,63 @@ global proc Relax(int $currVtx, string $oBJName, vector $orignalVtxPos[])
 		}
 	}
 	
+	//print($ListFinalVertices);
+	
+	vector $resultantForce = <<0.0, 0.0, 0.0>>;
 	//Apply Force here
+	float $l = 2.0;
+	float $k = 1.0;
+	vector $xi= $orignalVtxPos[$currVtx];
+	for( $i=0; $i<size($ListFinalVertices); ++$i)
+    {
+        int $vertexJ = (int)$ListFinalVertices[$i];
+	    vector $xj = $orignalVtxPos[$vertexJ];
+	    vector $newX =  $xi - $xj;
+	    float $lengthX = mag($newX);
+	    
+	    float $scalorMultiple = $k * ($l/$lengthX - 1.0) * (1.0/ $lengthX);
+	    vector $force = $scalorMultiple * $newX;
+	    $resultantForce += $force;
+	    
+	    print ("vertexJ");
+	    print ($vertexJ);
+	    print ("newX");
+	    print ($newX);
+	    
+	}
+	
+	EulerIntegrator($currVtx, $oBJName, $resultantForce);
 	
 	
 }
+
+global proc EulerIntegrator(int $a_currVtx, string $oBJName, vector $Force)
+{
+	string $vtxCmndSelVtx = $oBJName + ".vtx["+ $a_currVtx + "]";
+	float $pos[] = `pointPosition $vtxCmndSelVtx`;
+	vector $currVtxPos = <<$pos[0], $pos[1], $pos[2]>>;
+	print("a_currVtx");
+	print ($a_currVtx);
+	print( "currVtxPos");
+	print($currVtxPos);
+	float $dt = 1.0;
+	vector $velocity = $Force * $dt;
+	$currVtxPos = $velocity * $dt;
+	print( "Force");
+	print ($Force);
+	float $moveX = $currVtxPos.x;
+	float $moveY = $currVtxPos.y;
+	float $moveZ = $currVtxPos.z;
+	print ("\n");
+	polyMoveVertex -t $moveX $moveY $moveZ $vtxCmndSelVtx;
+}	
 
 global proc DoRelaxation(string $oBJName )
 {
 	string $selectedOBJ = $oBJName;
 	int $vtxCount[] = `polyEvaluate -v $selectedOBJ`;
 	int $singleCount = $vtxCount[0];
-	print($vtxCount[0]);
+	//print($vtxCount[0]);
 	vector $orignalVtxPos[];
 
 	for($i = 0; $i < $vtxCount[0]; ++$i)
@@ -432,6 +478,8 @@ global proc DoRelaxation(string $oBJName )
 		Relax($i, $selectedOBJ, $orignalVtxPos);
 	}
 }
+
+DoRelaxation("pCone1");
 
 
 global proc GenerateFabric_Deprecated()
