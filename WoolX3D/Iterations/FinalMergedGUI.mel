@@ -293,6 +293,8 @@ global proc GetSelection(string $v)
 	$fileId = `fopen $csvLoadPath "r"`;
 	string $lineOfText = `fgetline $fileId`;
 
+	//clear Data list
+	clear $data;
 	string $separated[];
 	int $counter = 0;
     $sizeX = 0;
@@ -479,7 +481,7 @@ global proc DoRelaxation(string $oBJName )
 	}
 }
 
-DoRelaxation("pCone1");
+//DoRelaxation("pCone1");
 
 
 global proc GenerateFabric_Deprecated()
@@ -681,33 +683,33 @@ proc vector getFaceCenter( string $pFaceName ) {
        
  proc moveAlign( string $pObjectName, vector $pNormal, vector $pPosition, vector $pScale, int $currIdxX, int $currIdxY, int $sizeX, int $sizeY ) {
         
-        vector $tangent1 = unit( cross( << 0, 1, 0 >> , $pNormal) );
+       vector $tangent1 = unit( cross( << 0, 1, 0 >> , $pNormal) );
         if( mag( $tangent1 ) == 0 ) {
             $tangent1 = << 1, 0, 0 >>;
         }
 		
         vector $tangent2 = unit( cross( $pNormal, $tangent1 ) );
 		
-		float $mat[] = {$tangent1.x,$tangent1.y,$tangent1.z,0.0,$pNormal.x,$pNormal.y,$pNormal.z,0.0,$tangent2.x,$tangent2.y,$tangent2.z,0.0 ,0.0 ,0.0 ,0.0 ,1.0};
+		float $mat[] = {$tangent2.x,$tangent2.y,$tangent2.z,0.0,$pNormal.x,$pNormal.y,$pNormal.z,0.0,$tangent1.x,$tangent1.y,$tangent1.z,0.0 ,0.0 ,0.0 ,0.0 ,1.0};
 		
 		// Place Extra Geomtry
 		
 		// print "pold";
 		// print ($pPosition);
-		float $alignedOffsetArr[] = pointMatrixMult({$pScale.x/2.0, 0.0, $pScale.y/2.0}, $mat) ;
+		float $alignedOffsetArr[] = pointMatrixMult({$pScale.x/2.0, 0.0, $pScale.z/2.0}, $mat) ;
 		vector $alignedOffsetVec = <<$alignedOffsetArr[0], $alignedOffsetArr[1], $alignedOffsetArr[2]>>;
 		
 		vector $alignedPos = $pPosition - $alignedOffsetVec;
 		
-		// print "alignedPos";
-		// print ($alignedPos);
+		 print "alignedPos";
+		 print ($alignedPos);
 		
 		
 		float $offsetX = $pScale.x/$sizeX;
-		float $offsetY = $pScale.y/$sizeY;
-		print ("offset");
-		print ($offsetX);
-		print ($offsetY);
+		float $offsetY = $pScale.z/$sizeY;
+		// print ("offset");
+		// print ($offsetX);
+		// print ($offsetY);
 	// print ("pScale");
 		// print ($pScale);
 		// print ("sizeY");
@@ -715,14 +717,14 @@ proc vector getFaceCenter( string $pFaceName ) {
 		float $dx = $offsetX/2.0;
 		float $dy = $offsetY/2.0;
 		float $finalOffsetArr[] = {($dx + $offsetX * $currIdxX), 0.0,($dy + $offsetY * $currIdxY)};
-		// print ("finalOffsetArr");
-		// print ($finalOffsetArr);
+		 // print ("finalOffsetArr");
+		 // print ($finalOffsetArr);
 		
 		vector $alignedOffsetVec2 = pointMatrixMult($finalOffsetArr, $mat) ;
 		vector $newPos = $alignedPos + $alignedOffsetVec2;
-		// print ("newPos");
-		// print ($newPos);		
-		// print ("\n");
+		 print ("newPos");
+		print ($newPos);		
+		 print ("\n");
 	
     select -cl;
 	select $pObjectName;
@@ -1058,7 +1060,6 @@ select -cl  ;
 
 	DeleteAllHistory;
 	// Warning: file: C:/Program Files/Autodesk/Maya2022/scripts/others/doDelete.mel line 111: nurbsTessellate1 (Nurbs Tessellate): missing input NURBS surface on nurbsTessellate1. // 
-	select -r SquareKnit ;
 
 }
 
