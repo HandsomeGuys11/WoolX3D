@@ -113,6 +113,17 @@ global proc DisplayWoolXDialog()
         setParent ..;
     $objScrollField = `scrollField -wordWrap off -height 50 -text ""`;
     setParent ..;
+	
+	columnLayout -adjustableColumn true;          
+    string $formBrowse = `formLayout -numberOfDivisions 2`;
+        string $bBrowse = `button -command BeginRelax -label "Relax Geometry"`;
+        string $tBrowse = `text -font boldLabelFont -label "Click this button to relax geometry according to knit type"`;
+        formLayout -edit
+            -attachForm $tBrowse "left" 0
+            -attachForm $bBrowse "right" 0
+            $formBrowse;
+        setParent ..;
+    setParent ..;
 
     frameLayout -label "Next, select a material preset for the knitted fabric.";
     frameLayout -label " ";
@@ -168,6 +179,7 @@ global proc addGeometryToList()
 	global string $csvPath;
     global string $csv;
     global string $objScrollField;  
+	global string $selectedObject;
 
     string $selObjectos [ ] = `ls -sl`;
 	for ( $obj in $selObjectos){
@@ -176,6 +188,7 @@ global proc addGeometryToList()
 	}
 
 	//string $poopy = `scrollField -q -text $objScrollField`;
+	$selectedObject = `scrollField -q -text $objScrollField`;
 	//print($poopy);
 
 
@@ -413,7 +426,7 @@ global proc Relax(int $a_currVtx, string $oBJName, vector $orignalVtxPos[])
 	
 	vector $resultantForce = <<0.0, 0.0, 0.0>>;
 	//Apply Force here
-	float $l = 2.0;
+	float $l = 1.5;
 	float $k = 1.0;
 	vector $xi= $orignalVtxPos[$currVtx];
 	for( $i=0; $i<size($ListFinalVertices); ++$i)
@@ -427,10 +440,10 @@ global proc Relax(int $a_currVtx, string $oBJName, vector $orignalVtxPos[])
 	    vector $force = $scalorMultiple * $newX;
 	    $resultantForce += $force;
 	    
-	    print ("vertexJ");
-	    print ($vertexJ);
-	    print ("newX");
-	    print ($newX);
+	    // print ("vertexJ");
+	    // print ($vertexJ);
+	    // print ("newX");
+	    // print ($newX);
 	    
 	}
 	
@@ -444,21 +457,28 @@ global proc EulerIntegrator(int $a_currVtx, string $oBJName, vector $Force)
 	string $vtxCmndSelVtx = $oBJName + ".vtx["+ $a_currVtx + "]";
 	float $pos[] = `pointPosition $vtxCmndSelVtx`;
 	vector $currVtxPos = <<$pos[0], $pos[1], $pos[2]>>;
-	print("a_currVtx");
-	print ($a_currVtx);
-	print( "currVtxPos");
-	print($currVtxPos);
-	float $dt = 1.0;
+	// print("a_currVtx");
+	// print ($a_currVtx);
+	// print( "currVtxPos");
+	// print($currVtxPos);
+	float $dt = 0.1;
 	vector $velocity = $Force * $dt;
 	$currVtxPos = $velocity * $dt;
-	print( "Force");
-	print ($Force);
+	// print( "Force");
+	// print ($Force);
 	float $moveX = $currVtxPos.x;
 	float $moveY = $currVtxPos.y;
 	float $moveZ = $currVtxPos.z;
-	print ("\n");
+	//print ("\n");
 	polyMoveVertex -t $moveX $moveY $moveZ $vtxCmndSelVtx;
 }	
+
+global proc BeginRelax()
+{
+	global string $selectedObject;
+	//print($selectedObject);
+	DoRelaxation $selectedObject;
+}
 
 global proc DoRelaxation(string $oBJName )
 {
@@ -653,7 +673,7 @@ proc vector getFaceCenter( string $pFaceName ) {
     }
     
  
-     proc vector getFaceNormal( string $pFaceName ) {
+    proc vector getFaceNormal( string $pFaceName ) {
         
         string $polyInfoResult[] = `polyInfo -fn $pFaceName`;
         string $stringToParse = $polyInfoResult[0];
@@ -679,16 +699,97 @@ proc vector getFaceCenter( string $pFaceName ) {
         return $unitWorldNormal;
         
     }
+
+     proc vector getTangent( string $pFaceName, vector $pFaceNormal) {
+        
+        vector $vertexPositions[] = `xform -q -ws -t $pFaceName`;
+        vector $tangent = <<0, 0, 0>>;
+		
+		
+		
+		//Determine Alignment
+		float $x_axis[] = {1, 0, 0};
+		float $y_axis[] = {0, 1, 0};
+	   vector $vector1 = ($vertexPositions[1] - $vertexPositions[0]);
+	   float $vector1flt[] = {$vector1.x, $vector1.y, $vector1.z};
+
+	   float $dot_x_1 = dotProduct( $vector1flt, $x_axis, 1 );
+	   float $dot_y_1 = dotProduct( $vector1flt, $y_axis, 1 );
+
+
+	   float $dot_x = abs ($dot_x_1);
+	   float $dot_y = abs ($dot_y_1);
+
+		//X aligned
+		$alignment = 0;
+		//Y aligned
+	   if($dot_y> $dot_x)
+	   {
+			$alignment = 1;
+	   }
+	   if($alignment == 0)
+	   {
+			$tangent = ($vertexPositions[1] - $vertexPositions[0]);
+	   }
+	    if($alignment == 1)
+	   {
+			$tangent = ($vertexPositions[2] - $vertexPositions[0]);
+	   }
+       return unit($tangent);
+    }
+	
+	 proc vector getBiTangent( string $pFaceName, vector $pFaceNorma ) {
+        
+         vector $vertexPositions[] = `xform -q -ws -t $pFaceName`;
+        vector $Bitangent = <<0, 0, 0>>;
+		
+		
+		
+		//Determine Alignment
+		float $x_axis[] = {1, 0, 0};
+		float $y_axis[] = {0, 1, 0};
+	   vector $vector1 = ($vertexPositions[1] - $vertexPositions[0]);
+	   float $vector1flt[] = {$vector1.x, $vector1.y, $vector1.z};
+
+	   float $dot_x_1 = dotProduct( $vector1flt, $x_axis, 1 );
+	   float $dot_y_1 = dotProduct( $vector1flt, $y_axis, 1 );
+
+
+	   float $dot_x = abs ($dot_x_1);
+	   float $dot_y = abs ($dot_y_1);
+
+		//X aligned
+		$alignment = 0;
+		//Y aligned
+	   if($dot_y> $dot_x)
+	   {
+			$alignment = 1;
+	   }
+	   if($alignment == 1)
+	   {
+			$Bitangent = ($vertexPositions[1] - $vertexPositions[0]);
+	   }
+	    if($alignment == 0)
+	   {
+			$Bitangent = ($vertexPositions[2] - $vertexPositions[0]);
+	   }
+	   return unit($Bitangent);
+        
+    }
+    
     
        
- proc moveAlign( string $pObjectName, vector $pNormal, vector $pPosition, vector $pScale, int $currIdxX, int $currIdxY, int $sizeX, int $sizeY ) {
+ proc moveAlign( string $pObjectName, vector $pNormal, vector $pTangent, vector $pBiTangent, vector $pPosition, vector $pScale, int $currIdxX, int $currIdxY, int $sizeX, int $sizeY ) {
         
-       vector $tangent1 = unit( cross( << 0, 1, 0 >> , $pNormal) );
-        if( mag( $tangent1 ) == 0 ) {
-            $tangent1 = << 1, 0, 0 >>;
-        }
+       // vector $tangent1 = unit( cross( << 0, 1, 0 >> , $pNormal) );
+        // if( mag( $tangent1 ) == 0 ) {
+            // $tangent1 = << 1, 0, 0 >>;
+        // }
 		
-        vector $tangent2 = unit( cross( $pNormal, $tangent1 ) );
+        // vector $tangent2 = unit( cross( $pNormal, $tangent1 ) );
+		
+		vector $tangent1 = $pTangent;
+		vector $tangent2 = $pBiTangent;
 		
 		float $mat[] = {$tangent2.x,$tangent2.y,$tangent2.z,0.0,$pNormal.x,$pNormal.y,$pNormal.z,0.0,$tangent1.x,$tangent1.y,$tangent1.z,0.0 ,0.0 ,0.0 ,0.0 ,1.0};
 		
@@ -701,8 +802,8 @@ proc vector getFaceCenter( string $pFaceName ) {
 		
 		vector $alignedPos = $pPosition - $alignedOffsetVec;
 		
-		 print "alignedPos";
-		 print ($alignedPos);
+		 // print "alignedPos";
+		 // print ($alignedPos);
 		
 		
 		float $offsetX = $pScale.x/$sizeX;
@@ -722,9 +823,9 @@ proc vector getFaceCenter( string $pFaceName ) {
 		
 		vector $alignedOffsetVec2 = pointMatrixMult($finalOffsetArr, $mat) ;
 		vector $newPos = $alignedPos + $alignedOffsetVec2;
-		 print ("newPos");
-		print ($newPos);		
-		 print ("\n");
+		 // print ("newPos");
+		// print ($newPos);		
+		 // print ("\n");
 	
     select -cl;
 	select $pObjectName;
@@ -947,7 +1048,7 @@ DeleteAllHistory;
 
 global proc CreateFabricDenseKnit(float $radius)
 {
-	circle -c 0 0 0 -nr 0 1 0 -sw 360 -r 0.3 -d 3 -ut 0 -tol 0.01 -s 8 -ch 1;
+	circle -c 0 0 0 -nr 0 1 0 -sw 360 -r $radius -d 3 -ut 0 -tol 0.01 -s 8 -ch 1;
 
 	curve -d 3 -p -5.505725 -0.370179 5.596172 -p -4.567986 0.322384 5.477482 -p -2.916852 0.667699 5.405872 -p -1.336441 0.347409 5.454603 
 	-p -0.502111 -0.285755 5.55199 -k 0 -k 0 -k 0 -k 2 -k 4 -k 4 -k 4;
@@ -1065,7 +1166,7 @@ select -cl  ;
 
 global proc CreateFabricStarKnit(float $radius)
 {
-	circle -c 0 0 0 -nr 0 1 0 -sw 360 -r 0.3 -d 3 -ut 0 -tol 0.01 -s 8 -ch 1;
+	circle -c 0 0 0 -nr 0 1 0 -sw 360 -r $radius -d 3 -ut 0 -tol 0.01 -s 8 -ch 1;
 
 	curve -d 3 -p 5.990069 0 6.029118 -p 4.904886 0 5.362787 -p 2.73452 0 4.030124 
 	-p 0.904702 0 2.061776 -p -0.535478 0 -0.0399568 -p 1.045695 0 -2.009434 
@@ -1172,9 +1273,9 @@ select -cl  ;
 
 global proc CreateFabricCircleKnit(float $radius)
 {
-	circle -c 0 0 0 -nr 0 1 0 -sw 360 -r 0.3 -d 3 -ut 0 -tol 0.01 -s 8 -ch 1;
+	circle -c 0 0 0 -nr 0 1 0 -sw 360 -r $radius -d 3 -ut 0 -tol 0.01 -s 8 -ch 1;
 
-	circle -c 0 0 0 -nr 0 1 0 -sw 360 -r 1 -d 3 -ut 0 -tol 0.01 -s 8 -ch 1; objectMoveCommand;
+	circle -c 0 0 0 -nr 0 1 0 -sw 360 -r $radius -d 3 -ut 0 -tol 0.01 -s 8 -ch 1; objectMoveCommand;
 	setAttr "nurbsCircle2.scaleX" 3;
 	setAttr "nurbsCircle2.scaleZ" 3;
 	select -cl  ;
@@ -1239,6 +1340,8 @@ select -cl  ;
 global proc GenerateFabric()
 {
 
+	
+	
 	global string $objScrollField;
 	global string $radiusSlider;
 	global float $values[];
@@ -1251,7 +1354,6 @@ global proc GenerateFabric()
 	int $localSizeY = $sizeY;
 	string $localData[] = $data;
 	string $selectedOBJ = `scrollField -q -text $objScrollField`;
-
 	float $radius = `floatSliderGrp -q -v $radiusSlider`;
 	
 	if($selectedOBJ == "")
@@ -1321,9 +1423,11 @@ global proc GenerateFabric()
                     // move -a -ws ($position.x) ($position.y) ($position.z) $newInstance;
                     
                     vector $normal = getFaceNormal( $face );
+					vector $tangent = getTangent($face, $normal);
+					vector $Bitangent = getBiTangent($face, $normal);
                     
                     vector $currScale =  getFaceScale ($face, $normal);
-                    moveAlign( $newInstance[0], $normal, $position, $currScale, $i, $j, $localSizeX, $localSizeY);
+                    moveAlign( $newInstance[0], $normal, $tangent, $Bitangent, $position, $currScale, $i, $j, $localSizeX, $localSizeY);
 				}
                 
 			}
@@ -1355,13 +1459,6 @@ global proc GenerateFabric()
 
 
 	}
-
-	
-	
-	
-
-
-
 }
 
 global proc createSelectedRandomNodeNetwork()
