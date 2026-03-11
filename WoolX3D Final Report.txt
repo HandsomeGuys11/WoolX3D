@@ -1,0 +1,725 @@
+
+
+WOOLX3D
+"The go-to solution for creating 3D knits and stitching geometry patterns for Autodesk Maya"
+
+Shubham Sharma, Sebasti·n Vargas
+
+
+PROJECT SUMMARY
+
+Our Authoring tool will allow users to generate what we will call "WoolX3D stitch mesh" based on two inputs:
+1. Some existing geometry.
+2. The desired stitching pattern for the existing geometry.
+The tool will output a version of the mesh that now possesses extra geometry that conforms to the contour of the mesh and represents yarn that has the stitching pattern that was inputted by the user.
+Currently in CG, when a character design requires it's clothing to have any sort of knitting or yarn pattern, the de facto solutions could be generally picked from these two alternatives:
+* Generate the illusion of depth and displacement with an artist-created normal map that represents the stitching pattern and place it as a texture on the 3D model itself.
+* Have an artist painstakingly model by hand the knitting patterns required by the garment in question.
+
+While these two solutions themselves have been used greatly along the industry, WoolX3D aims to make this exact situation its own maker target segment and audience.
+There will always exist a group of artists that require (at some point or another) to generate stitching mesh patterns for clothing, and WoolX3D is thought to satisfy the needs of those customers by bringing a tool that is user friendly and can generate a finer mesh representing the layout of stitches in the garment, replacing the time-consuming process of doing the same thing by hand. It will increase the 3D modelling production time of said meshes.
+For this to happen, in the WoolX3D pipeline, there will be two inputs required. First of them, we will start with a polygonal model that represents the large-scale surface of the knitted cloth. Second, a .csv file representing knitting instructions that has previously been created by the user will be given as well. Using these, the WoolX3D tool will produce a finer mesh representing the layout of stitches in the garment, which we call the generated WoolX3D stitch mesh, and this result will be comprised of a dense set of geometries and curves that represent the stitching pattern the user provided wrapped around the input mesh.
+The alpha version of WoolX is set to be finished on March 23. The beta version will be finished on April 11th and the final version will be set for May 9th.
+
+
+1. AUTHORING TOOL DESIGN
+
+1.1. Significance of Problem or Production/Development Need
+In computer graphics specifically, representing yarn in clothing has always proved to be challenging, specially realistically. The most common solution comes from normal mapping, a technique where a texture mapping procedure is used for faking the lighting of bumps and dents. It is used to add details without using more polygons. While for several applications one can get away with this superficial detail, there are instances in which this might not be the case. If the final product requires the clothing to be detail oriented, the illusion breaks once the camera tries to zoom in and focus on the grain-level detail of the garment. Also, the knitted pattern is normally dependent on the inputted normal map, and must be artistically created beforehand, which is a time-consuming process.
+Our authoring tool, WoolX3D, is based on a novel robust method for generating a 3D model of knitted clothing that possess yarn level detail [CJDS12]. This paper was selected because there current exists a lack of practical yarn clothing and knitting modeling techniques in commercial 3D packages, and that fact significantly limits the diversity and complexity of detail-oriented knitted garments that can be produced in visual effects and general 3D applications.
+
+1.2. Technology
+
+
+2
+
+The chosen siggraph paper, called: "Stitch Meshes for Modeling Knitted Clothing with Yarn-Level Detail" in essence describes a way in which we can efficiently create yarn-level models of knitted clothing with a rich variety of patterns that would be completely impractical to model
+using traditional techniques.
+
+There are two core technologies in this paper:
+
+1. The creation of yarn-level detail geometries based on some input instructions and input mesh.
+2. The dynamic simulation of the created garment to recreate more realistic behaviors.
+
+The authors start with a polygonal model that represents the large-scale surface of the knitted cloth. Using this mesh as an input, the interactive modeling tool produces a finer mesh representing the layout of stitches in the garment. By manipulating this mesh and assigning stitch types to its faces, the user can replicate a variety of complicated knitting patterns. The curve model representing the yarn is generated from the stitch mesh, then the final shape is computed by a yarn-level physical simulation that locally relaxes the yarn into realistic shape while preserving global shape of the garment and avoiding "yarn pull-through," thereby producing valid yarn geometry suitable for dynamic simulation.
+
+The technical overview steps of how the system functions is as follows:
+
+1. Begin the modeling process with a polygonal mesh that specifies the global shape of the cloth model.
+2. Using the mesh in step one, produce a high-resolution stitch mesh that serves as a canvas-like abstraction of the yarn model.
+3. Specify the desired knitting pattern over the stitch mesh's surface.
+4. After step four, the model goes through offline relaxation, beginning with a mesh-based relaxation that moves the stitch mesh to the subdivision surface of the input model and slides its vertices over this surface based on the topology of the knitting pattern.
+5. Generate Yarn Curves and Geometry.
+6. Use a physically based relaxation process at the yarn level to compute the final realistic shape.
+
+The paper was chosen as the results of this process are polygonal meshes that bound very well to the original shape, and their geometry level detail does a great job in representing yarn-like structures. As such, only the first core technology, the creation of yarn like geometries and patterns around the input mesh, is what has been decided to be the scope and main objective of this project. The simulation steps, while necessary for achieving even more realistic results, would require development time that is out of the scope of the current project and team.
+
+1.3. Design Goals
+1.3.1 Target Audience.
+The target audience for WoolX3D is mainly modelers and 3D Fashion designers. However, technical artists and technical directors are also part of the target audience, as they can help artists generate slight variations of WoolX by modifying the underlying code if the desire is to extends current capabilities.
+
+1.3.2 User goals and objectives
+The user will be able to generate yarn-level models of knitted clothing with a rich variety of patterns that would be completely impractical to model using traditional techniques.
+
+1.3.3 Tool features and functionality
+* Creation of a WoolX3D stitch mesh.
+The user, given two inputs (the knitting instructions and the base mesh), will receive and output in the form of a dense set of geometries and curves that represent the stitching pattern the user provided wrapped around the input mesh.
+* WoolX3D Stitch mesh parameter customization.
+The user will also be able to alter the diameter yarn geometries that are going to be generated, (so that the final output looks more or less "fluffy", for example) as well as the final material of the geometry for rendering purposes.
+
+
+1.3.4 Tool input and output
+* Inputs:
+o Knitting instructions in the form of a CSV file.
+This will be interpreted in matrix form by our algorithm. An example of top-level knitting instructions can be found in the next graph:
+
+
+
+
+
+
+
+
+
+Figure 1: An example of knitting patterns.
+
+In Figure 1, we find a visual representation of the knitting instructions. A CSV file with a matrix inside will be providing said set of instructions for the tool. The file will be comprised of cells, and each cell will expect a type of knitting instruction. The example in this figure uses arbitrary figures for the instructions, but WoolX3D will require more user-friendly knitting instructions like so:
+W = Three-way decrease stitch. M = Three-way increase stitch. X = No Stitch.
+O = Purl Stitch.
+(Left empty) = Regular Knit.
+
+o The input mesh.
+A simple geometry mesh that will be composed of a number of vertices, edges and faces (alongside normal information per face too). The output will use this base mesh to generate its shape.
+
+o Desired Material
+A preset selection of materials the user will be able to apply to the mesh.
+
+o Diameter of generated stitch geometry cylinders.
+Figure 2. How stitch geometry per face will look after some inputted knitting instructions.
+
+The generation of the stitch geometry will comprise of a set of splines that dictate direction and shape, and cylinders that wrap around said curves, as depicted by Figure 2. This input will describe the diameter of this shapes.
+
+* Outputs:
+o The WoolX3D stitch mesh.
+A dense set of geometries and curves that represent the stitching pattern the user provided wrapped around the input mesh.
+
+
+
+
+
+
+1.4. User Interface
+1.4.1 GUI Components and Layout
+
+
+
+
+Figure 3. The GUI layout of the WoolX3D plugin.
+
+In this GUI, we can see the layout of the desired implementation of the interface, as well as the general workflow for the user, as the order of interaction of each component starts from top to bottom.
+
+1.4.2 User Tasks
+1. The user must first select the knitting instructions from the GUI. The user can choose to upload their own instructions (that they created before) as a CSV file or select from one of our presets.
+2. The input geometry must now be selected. Before-hand the user must have loaded up some mesh on Maya, because when you click on the button that is labeled "Select Geometry", the list that will pop up will be populated by the amount of meshes that are already in the scene. The user must select one by name.
+
+3. The material list allows the user to select from a simple set of materials for the final output.
+4. Select the diameter of the generated geometry cylinders.
+5. Click on "Generate WoolX Stitch Mesh" to finalize the automatic modeling process.
+
+After some processing time, the user will receive its output. A newly generated mesh comprised of a dense set of geometries and curves that represent the stitching pattern the user provided wrapped around the input mesh.
+
+1.4.3 WorkFlow
+For the workflow definition, before interacting with the GUI, there must be a particular situation that must be considered by the user. Is the user going to develop their own stitching patterns? Or is the user going to select from our preset stitching patterns?
+
+While of course selecting from the presets takes less time, the whole idea of WoolX3D comes from the fact that the user can generate *any* stitching pattern on top of *any* geometry. Flexibility is key.
+
+Recognizing this, the tool will also come with a companion pdf that will instruct the user in the creation of their own CSV files for stitching patterns, giving them the flexibility they need to use the tool in any way they desire.
+
+After having chosen whether to use personally created stitching instructions or using the provided samples, the workflow is as follows:
+
+1. Select the Stitching Instructions and load them up.
+2. Select the desired input geometry to work on.
+3. Select the desired material.
+4. Select the desired diameter of generated stitching geometry loops.
+5. Process the mesh with the button "Generate WoolX Stitch Mesh".
+6. Get back a mesh comprised of the stitching patterns that were inputted around the input mesh.
+
+
+
+
+2. AUTHORING TOOL DEVELOPMENT
+
+2.1. Technical Approach
+
+2.1.1 Algorithm Details
+
+Understanding Stitching Types:
+
+There are three fundamental actions for generating stitches while knitting: pulling the yarn through an existing loop either from the back side towards the front (knit) or from the front side towards the back (purl), and simply wrapping the yarn around the knitting needle without pulling it through a loop (yarn-over). We represent these actions using k, p, and y symbols, respectively.
+
+Increases are formed by using combinations of k, p, and y on one existing
+loop. On the other hand, decreases are formed by using k or p through multiple existing loops. While forming a decrease stitch, the order in which the existing loops are stacked together is important, as it determines the direction that the stitch tends to twist.
+
+They represent decreases with the symbol d followed by a subscript that determines the stacking order, as can be described by the following figure:
+
+Figure 4. Stitch Types for stitch-mesh faces.
+
+Labeling the input mesh model:
+
+Given an input mesh that represents the surface of the garment model, there are often many ways it can be knitted. To provide the user direct control over the knitting direction over the surface, we'll begin the modeling process with labeling, during which each edge of the input mesh is labeled as either a wale edge or a course edge. We require that each face of the input mesh is assigned exactly two wale edges, and the rest of its edges are labeled as course edges. This way, we can uniquely define the knitting direction over the entire face, such that the yarn curves "enter" the face from one of the wale edges and "exit" the face from the other wale edge.
+
+The collection of faces that are connected by wale edges are called a row. Hence, the labeling process conceptually separates the input mesh into several rows, as shown in Figure 5. Note that there is no guarantee that an input mesh with an arbitrary topology can be separated into several rows in this fashion. On the other hand, there might be multiple ways to separate the input mesh into rows as shown
+
+in Figure 5. If the input mesh cannot be separated into several rows according to the user's intentions, the paper requires that the input mesh topology be modified manually as desired. Therefore, the input mesh must be modeled with a desired row structure in mind.
+
+Figure 5. Labeling input meshes into knitting rows: (a) input model; (b), (c), and (d) examples of possible rows each of which is displayed as a disjoint piece with a different color.
+
+Simplification: In the paper, there is an extensive user interface dedicated to manually labeling the model to generate user desired knitting rows. In our implementation, we will simply automatically select loops of faces in the current geometry and generate the rows as such. This simplification will result in all meshes having knitting rows like the (b) mesh in Figure 5.
+
+
+Geometry Modeling of the Knitted Fabric:
+
+The researchers here mainly refer to the approach labeled in [WY11].
+
+Simplification: In our tool we will be using only one type of fabric: Warp Knitted fabrics. This allows us to focus our efforts on creating only one set of geometries, and then linking them together with different stitching patterns. The warp knit looks like this:
+
+
+
+
+
+Figure 6. Example of Warp Knitting Pattern for stitches. This will be the geometry type that will be generated using splines. Their configuration will depend on the stitching instructions given by the user.
+
+And so, after the simplification, we can focus on constructing the knitting geometry itself. The main principle of creating the geometry of complex structures is based on an emulation of the real knitting process: first knitting on a flat machine and after that transforming the loops to their proper places in the 3D space. For this purpose, the whole structure is divided into small segments, which can consist of single loops or up to several courses or wales. The main assumption for applying this method is that the loops in each segment do not change their topology.
+
+The geometry of each segment is described in a discrete form as a vector of point coordinates in a local coordinate system in the following matrix:
+
+where xi, yi, zi, ui are the homogeneous coordinates of the ith point of the yarn segment, consisting of m points.
+
+This matrix will be defined by the knitting patterns described in the CSV file. In which we will translate user instructions into geometry building information for each segment.
+
+The homogenous coordinates of a point in space with k dimensions build a vector of length k + 1 and they allow projective transformations to be easily represented by matrix operations, where affine transformations can be simply combined by multiplying successive matrices. The Cartesian coordinates of a point with homogeneous coordinates (x, y, z, u) are (x/u, y/u, z/u). This simplifies and speeds up the calculations in the real-time graphics systems.
+
+This new segment C, in its bed structured form, will be what is going to be overlaid on top of each face of the input mesh. They will have to be duplicated and transformed to place copies of each other on top of every needed face.
+
+And so, segment C will need to be able to move after knitting from its original place to another place in the 3D space (Figure 7). This movement is represented by a translation T1 to the coordinate system origin, rotation R and translation T2 to the final position (Figure 8).
+
+
+
+Figure 7. Example of an original position and a transformed position of one segment.
+
+Figure 8. The transformation sequence of a single segment to overlay a face on the mesh.
+
+
+The translations T1 and T2 can be coded using translation matrices as in the example matrices Ti below:
+
+where Txi, Tyi and Tzi are components of the translation vectors, when i = {1,2}.
+For the rotation of the segment to an angle around the x-axis the rotation matrix R is used:
+
+
+
+
+
+And the final coordinates of the segment can be calculated as:
+
+
+
+Using this principle, a wide range of structures of (warp) knitting machines could be generated using the geometry of a single needle bed structure. These structures can be divided into three groups, depending on their cross-section in the xz-plane, and perpendicular to the knitting direction.
+
+Moving and "relaxing" the stitching geometry onto a surface.
+
+Instead of directly placing the stitch-mesh on top of the geometry with the method defined above, we can also have the stitch-mesh "relax" (as real wool would) in other to get more realistic geometries, utilizing a small simulation technique.
+
+During this simulation we restrict the vertices of the stitch mesh to remain on the subdivided surface, and vertices on stitch-mesh borders are restricted to remain on the borders of the subdivided surface. In order to compute the quasistatic rest state of the vertex positions, x, we timestep a simple first-order dynamics model,
+x = f (x), where f are spring forces defined.
+
+A backward Euler discretization yields a linear system to be solved for the timestep's change in position delta x:
+
+
+
+Finally, model the stretch force contribution to vertex i by an edge connected to vertex j using:
+
+
+
+Simplification: Note this mesh-based relaxation method merely uses the topology of the stitch mesh and it does not take the stitch types or cables into consideration. Therefore, while the yarn geometry generated after the mesh-based relaxation is closer to the final relaxed shape, in the paper they still need yarn-level relaxation to estimate the final position and shape of each stitch. We will keep it at this level and not estimate the final position and shape of the stitches. Placing a warp Knitting Pattern segment on each relaxed face will give a fine enough approximation.
+
+2.1.2 Maya Interface and Integration
+* In WoolX3D, all UI components such as dialogs and user settings will be implemented in MEL.
+
+* The WoolX Stitch mesh UI will be implemented as a C++ based plugin that will be available on Maya's user interface.
+
+* WoolX3D will be using these Maya objects and classes:
+
+o MfnMesh - Maya's polygonal mesh object.
+o MFnNurbsCurve - Maya's NURBs curve class.
+o MObjectArray / MObject - General data structure for storing various objects or textures
+o MImage - Texture/Image class that will be used for applying textures.
+
+2.1.3 Software Design and Development
+There will be several classes that will defined in C++. These classes will be designed to return an output that the Maya built in classes will be able to parse.
+
+A small MEL script will also be called, binding everything together. The classes in C++ will be defined as follows:
+- CsvInstructionsParser:
+o Will be responsible for parsing custom stitching instructions that we inputted from the user as a CSV file.
+o The Boost C++ library, found at Boost C++ Libraries, will be used in order the generate a quick CSV parser.
+o The parser will return the knitting instructions in matrix mode.
+
+- Eigen C++ (External Library):
+o Eigen will be used to deal with all the necessary linear algebra computations. As this project is very transformation reliant, it's important to have a library that will be able to deal with said transformations fast and reliably.
+- KnittedFabric:
+o Will implement the warp knitted fabric code. Will have functions that will return spline values that can be used to construct splines easily through a MEL command.
+o It  will  receive  the  knitting  instructions  coming  from  the
+CsvInstructionParser class for the creation of the spline data.
+
+
+- RowReadyStitchMesh:
+o Will take an input mesh and loop through all the faces of the object. Utilizing Maya's half edge data structure implementation of meshes, will loop through the face loops and generate an output of an array of faces that correspond to a knitting row.
+o Each knittingRow will have an amount of faces from the mesh bound to it, as well as knittingDirection, represented by a vector letting us know how to orient the knitted fabric. This direction will be calculated by taking the direction in which the face loop was found.
+o Outputs mesh data divided in rows that are ready for knittedFabric to be placed upon.
+
+- SimpleStitchMesh:
+o Will take in a RowReadyStitchMesh object as well as a KnittedFabric object and conduct the necessary operations to subdivide the mesh to have the topology resolution and configuration needed to eventually place the fabric upon.
+
+- RelaxedStitchMesh:
+o Will take in the SimpleStitchMesh as input.
+o Will apply the simulation techniques described above to "relax" the mesh in it's SimpleStitchMesh model to make it more realistic.
+o Outputs geometry that is primed and ready to place knitted fabric on top for the next class.
+
+- WoolX3D_StitchMesh
+o This is the final output class that will return an MfnMesh comprised of the stitching patterns that were inputted around the input mesh.
+o Takes in a KnittedFabric as input and places the knitted fabric on top of each face of the geometry that has been previously worked upon.
+
+
+
+
+
+2.2. Target Platforms
+2.2.1 Hardware
+
+* 64-bit quad core CPU with SSE2 support
+
+* 4 GB RAM
+* Graphics card with 2 GB RAM, OpenGL 4.3
+* Generally, a machine that's less than 10 years old.
+
+2.2.2 Software
+ï (64-bit) Windows 10 or above.
+ï Maya 2020 or above.
+ï OpenGL 4.3+
+ï Microsoft Visual C++ 2017 or higher.
+
+2.3. Software Versions
+2.3.1 Alpha Version Features (first prototype)
+o The alpha version, due March 23rd, will contain the following features:
+o A basic MEL command that will call a first approximation of the KnittedFabric class, and we will be able to see warp knitted fabric loops on the Maya viewport.
+o A basic MEL command that will take in any mesh geometry in maya's viewport and return a RowReadyStitchMesh.
+o The two results will still not be joined together and in the alpha will be seen as a separate entity.
+
+2.3.2 Beta Version Features
+o The beta version, due April 11th, will contain the following features:
+o A first approximation of the GUI that will enable users to interact with WoolX3D.
+o The implementation of the CsvInstructionsParser for custom knitting instructions.
+o Generation of the PDF to instruct users on the creation of a CSV file with custom knitting instructions.
+o The creation of different stitching patterns in the KnittedFabric class based on the inputted knitting instruction.
+o Generation of the SimpleStitchMesh based on an input
+RowReadyStitchMesh.
+
+2.3.3 Description of any demos or tutorials
+o There will be a small video shipped with the final product that does a quick overview of how to use the system, what it requires as inputs and what the user will get as an output.
+
+o To teach the user about the creation of custom stitching patterns, there will be a PDF included that will serve as a small tutorial on how to fill out an included CSV file for knitting instructions. I will give the user an idea on
+
+how to give information in this file to let the software know how to generate the stitching.
+
+
+
+3. WORK PLAN
+
+3.1. Tasks and Subtasks
+
+The knittedFabric class will be implemented. A basic MEL command will be created that will let us see as an output in the Maya viewport some meshes describing warp knitting pattern geometry.
+
+* Subtask 1.1. Understanding Warp Knitting Stitching Patterns
+Read up on how the warp knitting pattern is developed in real life and abstracting this knowledge for computer software to understand.
+
+* Subtask 1.2. Generation of the spline information needed
+The next step is to now generate a path in the form of a spline that will represent the warp knitting stitching pattern. This includes pattern repetition.
+
+* Subtask 1.3. Wrapping geometry around the splines
+Now that the splines are generated, geometry (most likely cylinders) will be wrapped around the spline paths.
+
+
+
+
+The RowReadyStichtMesh class will be implemented. A basic MEL command will be created that will let us see as an output in the Maya viewport a mesh slightly separated on its knitting rows components.
+
+* Subtask 2.1. Acquiring the face loops of the object
+
+Utilizing the Maya API, we will select the face loops of any given object.
+
+
+* Subtask 2.2. Defining the stitching direction
+The loop selection will have a direction that is dictated by the half-edge mesh structure that works under the hood inside Maya. This direction will help us label de stitching direction of the input object.
+
+* Subtask 2.3. Separating the mesh into Knitting rows
+Now that the face loops have been acquired, we will separate the mesh into knitting rows and place them all in an array for further use later in the pipeline.
+
+
+
+The RowReadyStichtMesh class will be implemented. A basic MEL command will be created that will let us see as an output in the Maya viewport a mesh slightly separated on its knitting rows components.
+
+* Subtask 3.1. Generate GUI
+The GUI for the WOOLX3D software will now be implemented. Functionality will be added as more features come into the mix in development.
+
+* Subtask 3.2. Generate the CsvInstructionsParser Class
+A way to give the user control in the knitting patterns is to let him or her input how the stitching pattern is going to look. This class will allow the user to do just that. PDF instructions will be created too to aid the user in this process. After this, the knitted fabric can take different forms based on what the user inputs.
+
+
+
+* Subtask 3.3. SimpleStitchMesh class generation
+Since at this point we would have a RowReadyStichtMesh, with it we can now create a SimpleStitchMesh. This will take in the RowReadyStitchMesh object as well as a KnittedFabric object and conduct the necessary operations to subdivide the mesh to have the topology resolution and configuration needed to eventually place the fabric upon.
+
+
+
+
+
+The RowReadyStichtMesh class will be implemented. A basic MEL command will be created that will let us see as an output in the Maya viewport a mesh slightly separated on its knitting rows components.
+
+* Subtask 4.1. Generate the RelaxedStitchMesh
+Take in the SimpleStitchMesh as input.
+Apply the simulation techniques described above to "relax" the mesh in it's
+SimpleStitchMesh model to make it more realistic.
+Outputs geometry that is primed and ready to place knitted fabric on top for the next class.
+* Subtask 4.2. Generate the final WoolX3D_StitchMesh
+This is the final output class that will return an MfnMesh comprised of the stitching patterns that were inputted around the input mesh.
+Takes in a KnittedFabric as input and places the knitted fabric on top of each face of the geometry that has been previously worked upon.
+
+* Subtask 4.3. Prepare the final presentation, make video, polish the product. Slides, video, and everything else that is needed for the final presentation will be developed according to requirements.
+Some extra polish or things that would need to be fixed will also be worked upon in this task.
+
+
+
+
+3.2. Milestones
+3.2.1 Alpha Version
+o Task 1
+o Subtask 1.1
+o Subtask 1.2
+o Subtask 1.3
+
+o Task 2
+o Subtask 2.1
+o Subtask 2.2
+o Subtask 2.3
+
+3.2.2 Beta Version
+o Task 3
+o Subtask 3.1
+o Subtask 3.2
+o Subtask 3.3
+
+3.2.3 Final Version
+o Task 4
+o Subtask 4.1
+o Subtask 4.2
+o Subtask 4.3
+
+
+
+3.3. Schedule
+
+
+
+
+
+
+
+
+
+
+
+
+
+21
+
+CIS660: Advanced Topics in Computer Graphics and Animation
+
+4. RESULTS
+
+
+4.1. Documentation / Tutorial.
+
+Previous Necessary Setup:
+
+You will see two folders that ship with the product called "img" and "knits". These two folders must be copied and pasted here:
+C:/Users/Your Username/Documents/maya/Your Maya Version/scripts
+
+    The Blue items must be replaced with the correct string. For example, if my username is Doctor and my Maya version is 2020, the correct path would be:
+    C:/Users/Doctor/Documents/maya/2020 Step 1.
+Load up the plugin by going to Windows -> Settings and Preferences
+-> Plugin Manager. Select the Woolx3D.mll file shipped with the product.
+
+Step 2.
+Open up the Tool's Interface by going WoolX3D -> Open WoolX3D Menu.
+
+Step 3.
+Now you must select the knitting instructions. You have to options.
+
+3.1. 	Create your own knitting instructions. To do that, generate a CSV File that represents the type and amount of knits you want per face.
+Here are the conventions: SquareKnit -> S DenseKnit -> D
+XKnit -> X CircleKnit -> O LoopKnit -> V
+
+How does the CVS file work?
+
+If you generate a file called knits.csv that contains the following:
+
+v,v,v
+v,v,v
+v,v,v
+
+Every face of your geometry will have a grid of 3x3 stitches of the type LoopKnit. Have fun creating your own!
+Load them up on the "Select your source for knitting instructions" section.
+
+3.2. Select from the premade knitting instructions.
+You can also choose to select from a preset set of knitting instructions by choosing "Basic Knit settings.".
+
+Step 4.
+Select the geometry on the viewport you want to operate upon and click "Add".
+Step 5.
+Select The material color for your knit mesh.
+
+Step 6.
+Select the Knit Stitch diameter with the slider.
+
+Step 7.
+Hit the "Create" button. The WoolX Stitch Mesh will be generated around the object you selected.
+
+4.2. Content Creation.
+
+
+
+In this example, the resulting knit would look like this on the basic cube with the following parameters:
+
+
+
+Here's a close up of the WoolX3D Mesh:
+
+
+
+4.3. Discussion.
+
+4.3.1 Accomplishments
+Every feature proposed in this design document was implemented successfully. Here's a list of everything that got implemented:
+
+- Generation of the spline information needed
+- Wrapping geometry around the splines
+- Generation of GUI
+- Generation of the Csv Instructions Parser
+- Generate the RelaxedStitchMesh
+- Generate the final WoolX3D_StitchMesh
+
+4.3.2 Design Changes
+There was a small design decision change. While originally, we were planning to implement a test OpenGL app, the option got scrapped fast. Sitting down with the development team, we were able to recognize our tight deadlines and understood our efforts were better spent working immediately on the tool itself.
+
+The choice paid dividends, as we were able to finish the implementation of the tool and the promised features in time.
+
+4.3.3 Total Man-Hours Worked
+
+Shubham Sharma - 82 hours. Sebasti·n Vargas - 80 hours.
+
+Cumulative - 162 hours.
+
+4.3.4 Future Work
+
+- A more artist friendly GUI system for the generation of the knitting instructions must be devised to have a faster learning curve for the system.
+- The tool should also be able to work with animated meshes, and regenerate knitting garments per frame of animation (considering deformation) so that a broader market segment can be captured.
+
+4.3.5 Third Party Software
+There was no third-party software used. Everything was based off the Maya API.
+
+4.3.6 Lessons Learned
+The Maya API is vast and complex. The amount of time that was given in order to learn it was little when taking into account the huge amount of material that must be understood.
+The Maya API documentation found at Autodesk Maya API Documentation: API Guide proved invaluable while working in the creation of the tool.
+
+
+
+5. RELATED RESEARCH
+
+
+Literature Survey For WoolX 3D
+
+By: Shubham Sharma, Sebasti·n Vargas
+
+CIS 660	Advanced Topics in Computer Graphics and Animation
+Instructor: Dr. Stephen Lane
+
+Introduction
+
+Knitted fabrics are commonplace and their complicated structure is visually apparent. Stitches can be formed using various knitting operations, leading to a rich variety of possible knitting patterns with drastically different appearances. Since the final shape of a particular stitch depends on the types of stitches around it, constructing realistic knitted clothing requires a more in depth look at the yarn level.
+In computer graphics specifically, representing yarn in clothing has always proved to be challenging, specially realistically. The most common solution comes from normal mapping, a technique where a texture mapping procedure is used for faking the lighting of bumps and dents. It is used to add details without using more polygons. While for several applications one can get away with this superficial detail, there are instances in which this might not be the case. If the final product requires the clothing to be detail oriented, the illusion breaks once the camera tries to zoom in and focus on the grain-level detail of the garment. Also, the knitted pattern is normally dependent on the inputted normal map, and must be artistically created beforehand, which is a time-consuming process.
+Our authoring tool, WoolX3D, is based on a novel robust method for generating a 3D model of knitted clothing that possess yarn level detail [CJDS12]. This paper was selected because there current exists a lack of practical yarn clothing and knitting modeling techniques in commercial 3D packages, and that fact significantly limits the diversity and complexity of detail-oriented knitted garments that can be produced in visual effects and general 3D applications.
+In our tool, we will start with a polygonal model that represents the large-scale surface of the knitted cloth. Using this mesh as an input, as well as with user-created stitching instructions, the WoolX3D tool will produce a finer mesh representing the layout of stitches in the garment, which we call the generated WoolX3D stitch mesh, and this result will be comprised of a dense set of geometries and curves that represent the stitching pattern the user provided wrapped around the input mesh.
+In this literature survey, we will trace from the seminal work: The Synthesis of Cloth Objects [J86], which explains the first steps of cloth representation, rendering and simulation, and then going through time inspecting various techniques for cloth 3D creation, including knitted fabrics, stitching patterns, virtual garments, geometry modeling and finally getting to the Stitch Meshes for Modeling Knitted Clothing with Yarn-level Detail, which is our implementation paper.
+
+
+
+
+Content
+
+The research evolution is shown in the following graph:
+
+
+
+
+
+
+
+[J86]
+In this seminal paper we learn how in image synthesis, back in 1986, cloth objects such as clothes were most often modelled as textures mapped onto rigid surfaces. However, to represent such objects more realistically, their physical properties had to be examined, especially regarding surfaces [C75]. As such, this seminal paper was the first to describe a method for modelling cloth material hanging in three dimensions when supported by any number of constraint points. The cloth synthesized with this model contains folds and appears more realistic than simple texture mapping as explained in [B78]. This paper also describes a method for rendering the cloth once its free-hanging shape has been determined. While not a yarn / stitching paper per se, it was the first introduction to anything clothing related in CG and, as such, is our starting point.
+
+[MB98]
+In this paper, the authors present a system to use three-dimensional computer graphics in garment design. This system is capable of visualizing the physically correct appearance of knitted fabric. They explain how a fast visualization of a physical correct micro-structure garment is of critical importance in the textile industry since it enables fast and less expensive product development. The system was intended to be used in the design of new products and teaching the art of knitted fabrics. This is generally supported by the works of [BHW94] and [VCM95] as they both talk about versatile and efficient techniques for simulating cloth and other deformable objects.
+
+[OS02]
+In this next work, a 3D computer aided designing (CAD) system is developed for solid modeling and visual simulation of warp knitted structures on Silicon Graphics workstations. In the first part, a three-dimensional cylindrical and uniform solid yarn model is developed, so that its central axis is a space curve, using non-uniform rational B-spline (NURBS) surfaces to achieve a true 3D solid representation of warp knit loops and structures. This yarn model is then used to create single warp knit loops and fabrics. The necessary data for empirical loop models are obtained from experimental work. This paper describes the methodology and mathematics used to create the yarn and loop models. Some examples of warp knit fabrics are generated on a computer using the empirical loop models, and these images are compared with real warp knit fabric pictures for visual evaluation.
+
+[MSI03]
+Next is a paper that uses our presented past research to create geometry for weft-knitted fabrics. They begin by explaining that the accuracy of the prevailing geometrical models of the plain weft knitted fabrics is estimated and a more precise model for the use in computational modelling produced. Their new proposed model is based on the assumptions of the ideal elastic yarn and the elastic energy minimization of the yarns composing the relaxed fabrics. Thus, they use a repeated calculation process for the selection of the loop shape corresponding to the minimum loop length. They have mainly based their research on [CK89] and [HGB69] for the structural mechanics they needed to later represent the model in 3D. The accuracy of the models is evaluated using the loop length as criterion. Also, the accuracy of the new proposed model guarantees the success of the mechanical simulation of the knitted fabrics.
+
+
+
+[PDJLAM06]
+
+This next paper presents a more intuitive way to design virtual clothing. They start with a 2D sketching system in which the user draws the contours and seamlines of the garment directly on a virtual mannequin. The system then converts the sketch into an initial 3D surface using an existing method based on a precomputed distance field around the mannequin. The system then splits the created surface into different panels delimited by the seamlines. This process allows them to output the corresponding sewing patterns. The last step the method computes a natural rest shape for the 3D garment, including the folds due to the collisions with the body and gravity. The folds are generated using procedural modeling of the buckling phenomena observed in real fabric. The result of the algorithm consists of a realistic looking 3D mannequin dressed in the designed garment and the 2D patterns which can be used for distortion free texture mapping.
+
+[MHR15]
+This study proposes a 3D geometrical model for biaxial weft knitted fabrics based on rib structure. Using modification of 3D plain loop to simplify the connection of back and face loops, unit-cell of a 1x1 rib structure is obtained. The warp and weft yarns can be drawn through this structure using Python scripting in Abaqus software. To verify the proposed geometrical model, the biaxial weft knitted fabric based on rib structure has been produced from polyester yarn on a modern flat knitting machine. Fabric is subjected to tensile loading in warp, weft, and bias directions according to standard methods. Using a FEM software, tensile behavior of fabrics is numerically simulated. The results show that the geometrical model can successfully predict the tensile behavior of the biaxial weft knitted fabric.
+
+[YMXYJESX10]
+Designing rotational symmetry fields on surfaces is an important task for a wide range of graphics applications. This work introduces a rigorous and practical approach for automatic N-RoSy field design on arbitrary surfaces with user-defined field topologies. The user has full control of the number, positions, and indexes of the singularities (as long as they are compatible with necessary global constraints), the turning numbers of the loops, and is able to edit the field interactively. We formulate N-RoSy field construction as designing a Riemannian metric such that the holonomy along any loop is compatible with the local symmetry of N-RoSy fields.
+
+[CRAN11]
+Modeling of realistic garments is essential for creating believable virtual environments. This paper presents an appealing, easy to use alternative to the established modeling approaches which are time consuming and require significant tailoring expertise. Unfortunately, the results created using existing sketch-based methods lack realism. Driven by human perception of garment sketches, and markerless garment capture [DTAWT2008], they propose a context-aware garment sketch interpretation based on a
+
+set of observations about key factors that affect the shape of garments. Based on this analysis they develop a geometric method for sketch-based modeling of garments which obtains more realistic results than previous techniques and with realistic looking wrinkles [DTMSA2010]. They then demonstrate the effectiveness of the method on a variety of inputs and validate our approach via a user study where viewers were asked to compare the believability of the outputs versus previous ones.
+
+[WY11]
+Warp knitted fabrics are widely used in medical and technical applications, as well as for clothing textiles. To predict their properties, it is useful to have knowledge about the yarn geometry and the yarn interactions within these fabrics. The geometrical modelling of warp knitted structures [GA10] from single bed knitting machines is documented in the literature. This final survey text concentrates on a computation of the geometry of warp knitted structures, which have complex 3D forms, or which are draped over similar ones. The topological information about the structure produced on the machine, is used to create the basic geometry of this structure. After creating the basic geometry, it is transferred to a 3D deformed state of the relaxed fabric.
+The paper starts with a short overview of the research papers about simulation of warp knitted structures. General theoretical remarks about the transformation from basic structure to 3D structure are given to us with the help of [RCL00]. Examples of spacer fabric with constant or non-constant thickness and tubular fabrics are included. All the results concentrate on the topological representation of the geometry and at this stage do not consider the influence of internal and external forces exerted on the fabric.
+
+
+References
+
+[J86]	Weil, J. (1986). The synthesis of cloth objects. Proceedings of the 13th Annual Conference on Computer Graphics and Interactive Techniques,
+SIGGRAPH 1986, 49-54. https://doi.org/10.1145/15922.15891
+
+[MB98]	Meiﬂner, M., & Eberhardt, B. (1998). The Art of Knitted Fabrics, Realistic & Physically Based Modelling of Knitted Patterns. Computer Graphics Forum, 17(3), 355-362. https://doi.org/10.1111/1467-8659.00282
+
+[OS02]	Goktepe, O., & Harlock, S. C. (2002). Three-dimensional computer modeling of warp knitted structures. Textile Research Journal, 72(3), 266-
+272. https://doi.org/10.1177/004051750207200314
+
+[PDJLAM06]	Decaudin, P., Julius, D., Wither, J., Boissieux, L., Sheffer, A., & Cani, M.
+P. (2006). Virtual garments: A fully geometric approach for clothing design. Computer Graphics Forum, 25(3), 625-634. https://doi.org/10.1111/J.1467-8659.2006.00982.X
+
+[MHR15]	Abghary, mohammad javad & Hasani, Hossein & Jafari Nedoushan, Reza. (2017). Geometrical modeling for bi-axial weft knitted fabrics based on rib structure. Indian journal of fibres and textiles research. 42.
+[MSI03]	Massiliadis, Savvas & Iallivretaki, Christopher. (2003). Geometrical modelling of plain weft knitted fabrics. Indian Journal of Fibre and Textile Research. 32. 62-71.
+[YMXYJESX10]	Lai, Y. K., Jin, M., Xie, X., He, Y., Palacios, J., Zhang, E., Hu, S. M., &
+Gu, X. (2010). Metric-driven RoSy field design and remeshing. IEEE Transactions on Visualization and Computer Graphics, 16(1), 95-108. https://doi.org/10.1109/TVCG.2009.59
+
+[WY11]	Renkens, W., & Kyosev, Y. (2011). Geometry modelling of warp knitted fabrics with 3D form. Textile Research Journal, 81(4), 437-443. https://doi.org/10.1177/0040517510385171
+
+[CRAN11]	Robson, C., Maharik, R., Sheffer, A., & Carr, N. (2011). Context-aware garment modeling from sketches. Computers and Graphics (Pergamon), 35(3), 604-613. https://doi.org/10.1016/J.CAG.2011.03.002
+
+[C75]	Catmull, E. (1975). COMPUTER DISPLAY OF CURVED SURFACES. 11-
+17. https://doi.org/10.1145/280811.280920
+
+[B78]	Blinn, J. F. (1978). Simulation of wrinkled surfaces. Proceedings of the 5th Annual Conference on Computer Graphics and Interactive Techniques,
+SIGGRAPH 1978, 286-292. https://doi.org/10.1145/800248.507101
+
+[BHW94]	Breen, D. E., House, D. H., & Wozny, M. J. (1994). Predicting the drape of woven cloth using interacting particles. Proceedings of the 21st Annual Conference on Computer Graphics and Interactive Techniques, SIGGRAPH 1994, 365-372. https://doi.org/10.1145/192161.192259
+
+[VCM95]	Volino, P., Courchesne, M., & Thalmann, N. M. (1995). Versatile and efficient techniques for simulating cloth and other deformable objects. Proceedings of the ACM SIGGRAPH Conference on Computer Graphics, 137-144. https://doi.org/10.1145/218380.218432
+
+[CK89]	Chou, T.-Wei., & Ko, F. K. (1989). Textile structural composites. 387.
+
+[HGB69]	Hearle, J. W. S., Grosberg, P., & Backer, S. (1969). Structural mechanics of fibers, yarns, and fabrics / [by] J. W. S. Hearle, P. Grosberg [and] S. Backer. Vol.1.
+[DTAWT2008]	Bradley, D., Popa, T., Sheffer, A., Heidrich, W., & Boubekeur, T. (2008). Markerless garment capture. ACM Transactions on Graphics (TOG), 27(3). https://doi.org/10.1145/1360612.1360698
+
+[DTMSA2010]	Rohmer, D., Cani, M. P., Hahmann, S., Rohmer, D., Cani, M. P., Popa, T., & Sheffer, A. (2010). Animation wrinkling. ACM Transactions on Graphics (TOG), 29(6), 1-8. https://doi.org/10.1145/1882261.1866183
+
+[GA10]	Leaf, G. A. V., & Glaskin, A. (2010). The Geometry of a Plain Knitted Loop. Http://Dx.Doi.Org/10.1080/19447027.1955.10750345, 46(9), T587-
+T605. https://doi.org/10.1080/19447027.1955.10750345
+
+[RCL00]	Robitaille, F., Clayton, B. R., Long, A. C., Souter, B. J., & Rudd, C. D. (2016). Geometric modelling of industrial preforms: Warp-knitted textiles: Http://Dx.Doi.Org/10.1177/146442070021400203, 214(2), 71-90.
+https://doi.org/10.1177/146442070021400203
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
