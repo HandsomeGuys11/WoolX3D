@@ -61,14 +61,25 @@ Output: dense geometry with curves/cylinders representing stitch loops arranged 
 
 ## Images
 
-![WoolX3D UI](img/GUI_2.png "WoolX3D UI")
-**Figure 1.** WoolX3D UI
-![Pattern matrix](img/KnittingPatterns_2.png "Pattern matrix")
-**Figure 2.** Pattern matrix
-![Stich Looping](img/Stitch_Geometry.png "Stich Looping")
-**Figure 3.** Stich Looping
-![Output mesh example (Simple Cube)](img/Knit_On_SimpleCube_2.png "Output mesh example (Simple Cube)")
-**Figure 4.** Output mesh example (Simple Cube)
+<figure>
+  <img src="img/GUI_2.png" alt="WoolX3D UI" title="WoolX3D UI">
+  <figcaption>Figure 1. WoolX3D UI</figcaption>
+</figure>
+
+<figure>
+  <img src="img/KnittingPatterns_2.png" alt="Pattern matrix" title="Pattern matrix">
+  <figcaption>Figure 2. Pattern matrix</figcaption>
+</figure>
+
+<figure>
+  <img src="img/Stitch_Geometry.png" alt="Stitch Looping" title="Stitch Looping">
+  <figcaption>Figure 3. Stitch Looping</figcaption>
+</figure>
+
+<figure>
+  <img src="img/Knit_On_SimpleCube_2.png" alt="Output mesh example (Simple Cube)" title="Output mesh example (Simple Cube)">
+  <figcaption>Figure 4. Output mesh example (Simple Cube)</figcaption>
+</figure>
 
 ## Detailed documentation
 
