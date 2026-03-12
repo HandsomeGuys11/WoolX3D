@@ -59,18 +59,13 @@ Output: dense geometry with curves/cylinders representing stitch loops arranged 
 - `img/` — place UI/output screenshots
 - Optional: `images/` folder (create as needed)
 
-## Image placeholders
-
-Add images here after conversion from PDF design:
-- `images/woolx3d-ui.png` (GUI screenshot, user workflow)
-- `images/knit-pattern-csv.png` (instruction matrix example)
-- `images/output-mesh-example.png` (result on geometry)
-- `images/architecture-diagram.png` (pipeline)
+## Images
 
 Example markdown insertion:
-![WoolX3D UI](images/woolx3d-ui.png)
-![Pattern matrix](images/knit-pattern-csv.png)
-![Output mesh example](images/output-mesh-example.png)
+![WoolX3D UI](img/GUI_2.png)
+![Pattern matrix](img/KnittingPatterns_2.png)
+![Stich Looping](img/Stitch_Geometry.png)
+![Output mesh example (Simple Cube)](img/Knit_On_SimpleCube_2.png)
 
 ## Detailed documentation
 
