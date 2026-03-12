@@ -61,11 +61,10 @@ Output: dense geometry with curves/cylinders representing stitch loops arranged 
 
 ## Images
 
-Example markdown insertion:
-![WoolX3D UI](img/GUI_2.png)
-![Pattern matrix](img/KnittingPatterns_2.png)
-![Stich Looping](img/Stitch_Geometry.png)
-![Output mesh example (Simple Cube)](img/Knit_On_SimpleCube_2.png)
+![WoolX3D UI](img/GUI_2.png "WoolX3D UI")
+![Pattern matrix](img/KnittingPatterns_2.png "Pattern matrix")
+![Stich Looping](img/Stitch_Geometry.png "Stich Looping")
+![Output mesh example (Simple Cube)](img/Knit_On_SimpleCube_2.png "Output mesh example (Simple Cube)")
 
 ## Detailed documentation
 
